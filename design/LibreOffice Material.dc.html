@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0}
+  ::selection{background:var(--pc);color:var(--on-pc)}
+  a{color:var(--p);text-underline-offset:.18em}
+  a:visited{color:var(--visited)}
+  a:hover{text-decoration-thickness:.12em}
+  .lo-scroll::-webkit-scrollbar{width:12px;height:12px}
+  .lo-scroll::-webkit-scrollbar-thumb{background:var(--outline);border-radius:8px;border:3px solid transparent;background-clip:padding-box}
+  .lo-scroll::-webkit-scrollbar-track{background:transparent}
+  @keyframes lo-pop{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<div style="{{ rootVars }}">
+
+  <!-- ===== Prototype control bar ===== -->
+  <div data-silent="1" style="width:100%;background:var(--inv-s);color:var(--on-inv-s);display:flex;flex-wrap:wrap;align-items:center;gap:18px 22px;padding:12px 22px;position:sticky;top:0;z-index:80;box-shadow:0 2px 10px rgba(0,0,0,.25)">
+    <div style="display:flex;align-items:center;gap:10px;margin-right:6px">
+      <span style="font-family:'Material Symbols Rounded';font-size:26px;line-height:1;color:var(--p)">grid_view</span>
+      <div style="display:flex;flex-direction:column;line-height:1.1">
+        <strong style="font:700 14px/1.1 'Roboto',sans-serif;letter-spacing:-.01em">LibreOffice Material</strong>
+        <span style="font:500 11px/1.3 'Roboto',sans-serif;opacity:.62">Material Design 3 · suite prototype</span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <span style="font:700 10px/1 'Roboto',sans-serif;letter-spacing:.09em;text-transform:uppercase;opacity:.5">Surface</span>
+      <div style="display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);flex-wrap:wrap">
+        <sc-for list="{{ screens }}" as="o" hint-placeholder-count="9">
+          <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <span style="font:700 10px/1 'Roboto',sans-serif;letter-spacing:.09em;text-transform:uppercase;opacity:.5">Theme</span>
+      <div style="display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)">
+        <sc-for list="{{ themes }}" as="o" hint-placeholder-count="3">
+          <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <span style="font:700 10px/1 'Roboto',sans-serif;letter-spacing:.09em;text-transform:uppercase;opacity:.5">Density</span>
+      <div style="display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)">
+        <sc-for list="{{ densities }}" as="o" hint-placeholder-count="2">
+          <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <sc-if value="{{ isApp }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <span style="font:700 10px/1 'Roboto',sans-serif;letter-spacing:.09em;text-transform:uppercase;opacity:.5">Chrome</span>
+        <div style="display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)">
+          <sc-for list="{{ chromes }}" as="o" hint-placeholder-count="2">
+            <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- ===== Window ===== -->
+  <div style="width:100%;display:flex;justify-content:center;padding:24px 20px 8px">
+    <div style="width:min(1200px,97vw);border-radius:11px;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 30px 70px rgba(0,0,0,.30),0 6px 16px rgba(0,0,0,.16);overflow:hidden;position:relative">
+
+      <!-- Title bar -->
+      <div style="height:42px;display:flex;align-items:center;gap:10px;padding:0 0 0 14px;background:var(--sc);border-bottom:var(--bw) solid var(--outline-v)">
+        <span style="font-family:'Material Symbols Rounded';font-size:20px;line-height:1;color:var(--p)">{{ winIcon }}</span>
+        <span style="font:500 13px/1 'Roboto',sans-serif;color:var(--on-s)">{{ winTitle }}</span>
+        <div style="flex:1"></div>
+        <button title="Minimize" style="width:46px;height:42px;border:none;background:transparent;color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--outline-v)"><span style="font-family:'Material Symbols Rounded';font-size:18px">remove</span></button>
+        <button title="Maximize" style="width:46px;height:42px;border:none;background:transparent;color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--outline-v)"><span style="font-family:'Material Symbols Rounded';font-size:15px">crop_square</span></button>
+        <button title="Close" style="width:46px;height:42px;border:none;background:transparent;color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:#e81123;color:#fff"><span style="font-family:'Material Symbols Rounded';font-size:18px">close</span></button>
+      </div>
+
+      <!-- Command area: classic -->
+      <sc-if value="{{ showClassic }}" hint-placeholder-val="{{ true }}">
+        <div data-silent="1" style="display:flex;align-items:center;height:var(--menu);padding:0 6px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v);position:relative;z-index:30">
+          <sc-for list="{{ menus }}" as="m" hint-placeholder-count="8">
+            <div style="position:relative">
+              <button onClick="{{ m.onClick }}" style="{{ m.style }}" style-hover="background:var(--pc);color:var(--on-pc)">{{ m.label }}</button>
+              <sc-if value="{{ m.open }}">
+                <div style="position:absolute;top:calc(100% + 4px);left:0;min-width:248px;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.24);padding:6px;z-index:60;animation:lo-pop .12s ease">
+                  <sc-for list="{{ m.items }}" as="it" hint-placeholder-count="6">
+                    <sc-if value="{{ it.sep }}"><div style="height:1px;background:var(--outline-v);margin:6px 8px"></div></sc-if>
+                    <sc-if value="{{ it.item }}"><div onClick="{{ it.onClick }}" style="display:flex;align-items:center;gap:14px;height:var(--item);padding:0 10px;border-radius:8px;cursor:pointer;color:var(--on-s)" style-hover="background:var(--pc);color:var(--on-pc)"><span style="flex:1;font:400 13px/1 'Roboto',sans-serif">{{ it.l }}</span><span style="font:400 12px/1 'Roboto Mono',monospace;color:var(--on-sv)">{{ it.k }}</span><span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv);opacity:{{ it.subOp }}">chevron_right</span></div></sc-if>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <!-- Standard toolbar -->
+        <div class="lo-scroll" style="display:flex;align-items:center;gap:2px;height:var(--tb);padding:0 8px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v);overflow:hidden">
+          <sc-for list="{{ stdToolbar }}" as="it" hint-placeholder-count="16">
+            <sc-if value="{{ it.isBtn }}"><button title="{{ it.tip }}" style="width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center;flex:0 0 auto" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:20px">{{ it.icon }}</span></button></sc-if>
+            <sc-if value="{{ it.isSep }}"><div style="width:1px;height:22px;background:var(--outline-v);margin:0 6px;flex:0 0 auto"></div></sc-if>
+          </sc-for>
+        </div>
+        <!-- Formatting / secondary toolbar -->
+        <div class="lo-scroll" style="display:flex;align-items:center;gap:3px;height:var(--tb);padding:0 8px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v);overflow:hidden">
+          <sc-for list="{{ fmtToolbar }}" as="it" hint-placeholder-count="14">
+            <sc-if value="{{ it.isBtn }}"><button title="{{ it.tip }}" onClick="{{ it.onClick }}" style="{{ it.style }}" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:20px">{{ it.icon }}</span></button></sc-if>
+            <sc-if value="{{ it.isSep }}"><div style="width:1px;height:22px;background:var(--outline-v);margin:0 6px;flex:0 0 auto"></div></sc-if>
+            <sc-if value="{{ it.isCombo }}"><div onClick="{{ it.onClick }}" style="height:30px;display:flex;align-items:center;gap:8px;padding:0 8px 0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);background:var(--surface);font:400 13px/1 'Roboto',sans-serif;flex:0 0 auto;width:{{ it.w }}px;white-space:nowrap;overflow:hidden;cursor:pointer"><span style="flex:1;overflow:hidden;text-overflow:ellipsis">{{ it.text }}</span><span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv)">expand_more</span></div></sc-if>
+          </sc-for>
+        </div>
+        <!-- Formula bar (Calc) -->
+        <sc-if value="{{ isCalc }}"><div style="display:flex;align-items:center;gap:8px;height:var(--tb);padding:0 8px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v)">
+          <div style="height:30px;width:96px;display:flex;align-items:center;gap:6px;padding:0 8px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);font:500 13px/1 'Roboto',sans-serif;flex:0 0 auto">{{ calcSel }}<span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv);margin-left:auto">expand_more</span></div>
+          <button title="Function Wizard" style="width:32px;height:30px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--p);cursor:pointer;font:700 14px/1 'Roboto',sans-serif;flex:0 0 auto" style-hover="background:var(--pc)">fx</button>
+          <button title="Sum" style="width:32px;height:30px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;font:500 17px/1 'Roboto',sans-serif;flex:0 0 auto" style-hover="background:var(--pc);color:var(--on-pc)">Σ</button>
+          <div style="flex:1;height:30px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);background:var(--surface);font:400 13px/1 'Roboto',sans-serif">{{ calcFormula }}</div>
+        </div></sc-if>
+      </sc-if>
+
+      <!-- Command area: ribbon / notebookbar -->
+      <sc-if value="{{ showRibbon }}" hint-placeholder-val="{{ true }}">
+        <div data-silent="1" style="display:flex;align-items:center;gap:2px;height:38px;padding:0 8px;background:var(--sc);border-bottom:var(--bw) solid var(--outline-v)">
+          <sc-for list="{{ ribbonTabs }}" as="t" hint-placeholder-count="6">
+            <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+          </sc-for>
+          <div style="flex:1"></div>
+          <button title="Toggle Menu Bar" style="width:32px;height:30px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:20px">menu</span></button>
+        </div>
+        <div class="lo-scroll" style="display:flex;align-items:stretch;gap:0;height:96px;padding:8px;background:var(--surface);border-bottom:var(--bw) solid var(--outline-v);overflow:hidden">
+          <sc-for list="{{ ribbonGroups }}" as="g" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;align-items:center;padding:0 12px;border-right:var(--bw) solid var(--outline-v)">
+              <div style="flex:1;display:flex;align-items:center;gap:6px">
+                <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+                  <sc-if value="{{ it.big }}"><button title="{{ it.tip }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;width:64px;height:72px;border:none;background:transparent;border-radius:var(--r-cont);color:var(--on-s);cursor:pointer;padding-top:8px" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:28px">{{ it.icon }}</span><span style="font:400 11px/1.1 'Roboto',sans-serif;text-align:center">{{ it.label }}</span></button></sc-if>
+                  <sc-if value="{{ it.small }}"><button title="{{ it.tip }}" style="width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:20px">{{ it.icon }}</span></button></sc-if>
+                  <sc-if value="{{ it.chip }}"><div style="height:30px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);color:var(--on-s);background:var(--sc);font:400 12px/1 'Roboto',sans-serif;margin:2px 0;cursor:pointer;white-space:nowrap" style-hover="background:var(--pc);color:var(--on-pc)">{{ it.label }}</div></sc-if>
+                </sc-for>
+              </div>
+              <span style="font:400 11px/1 'Roboto',sans-serif;color:var(--on-sv);padding-bottom:2px">{{ g.name }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ===================== BODIES ===================== -->
+
+      <!-- START CENTER -->
+      <sc-if value="{{ isStart }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;height:600px">
+          <div style="width:236px;flex:0 0 auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);display:flex;flex-direction:column;padding:10px">
+            <button title="Open File" style="display:flex;align-items:center;gap:14px;height:44px;padding:0 12px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);cursor:pointer;font:600 14px/1 'Roboto',sans-serif;margin-bottom:6px" style-hover="background:var(--pa-hover)"><span style="font-family:'Material Symbols Rounded';font-size:20px">folder_open</span>Open File</button>
+            <button title="Remote Files" style="display:flex;align-items:center;gap:14px;height:40px;padding:0 12px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--on-s);cursor:pointer;font:500 13px/1 'Roboto',sans-serif" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:20px;color:var(--on-sv)">cloud</span>Remote Files</button>
+            <div style="height:1px;background:var(--outline-v);margin:8px 6px"></div>
+            <sc-for list="{{ scNav }}" as="n" hint-placeholder-count="2">
+              <button title="{{ n.label }}" onClick="{{ n.onClick }}" style="{{ n.style }}"><span style="font-family:'Material Symbols Rounded';font-size:20px">{{ n.icon }}</span>{{ n.label }}</button>
+            </sc-for>
+            <div style="height:1px;background:var(--outline-v);margin:8px 6px"></div>
+            <span style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--on-sv);padding:6px 10px 8px">Create</span>
+            <sc-for list="{{ createApps }}" as="a" hint-placeholder-count="6">
+              <button title="{{ a.label }}" onClick="{{ a.onClick }}" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 10px;border:none;border-radius:var(--r-cont);background:transparent;color:var(--on-s);cursor:pointer;font:500 13px/1 'Roboto',sans-serif;text-align:left" style-hover="background:var(--pc);color:var(--on-pc)"><span style="display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-sm);background:var(--pc);color:var(--on-pc);flex:0 0 auto"><span style="font-family:'Material Symbols Rounded';font-size:18px">{{ a.icon }}</span></span>{{ a.label }}</button>
+            </sc-for>
+            <div style="flex:1"></div>
+            <div style="display:flex;gap:4px;padding-top:8px">
+              <button style="flex:1;height:34px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--on-sv);cursor:pointer;font:500 12px/1 'Roboto',sans-serif" style-hover="background:var(--pc);color:var(--on-pc)">Help</button>
+              <button style="flex:1;height:34px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--on-sv);cursor:pointer;font:500 12px/1 'Roboto',sans-serif" style-hover="background:var(--pc);color:var(--on-pc)">Extensions</button>
+            </div>
+          </div>
+          <div class="lo-scroll" style="flex:1;overflow:auto;padding:26px 28px">
+            <h1 style="margin:0 0 4px;font:700 30px/1.1 'Roboto',sans-serif;letter-spacing:-.02em;color:var(--on-s)">Home</h1>
+            <p style="margin:0 0 20px;color:var(--on-sv);font:400 14px/1.5 'Roboto',sans-serif">Open recent work, explore templates, or create a new document.</p>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+              <div style="height:38px;display:flex;align-items:center;gap:10px;padding:0 10px 0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);font:400 13px/1 'Roboto',sans-serif">{{ scFilterLabel }}<span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv)">expand_more</span></div>
+              <div style="flex:1;height:38px;display:flex;align-items:center;gap:8px;padding:0 14px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-pill);color:var(--on-sv);background:var(--sc);font:400 13px/1 'Roboto',sans-serif"><span style="font-family:'Material Symbols Rounded';font-size:18px">search</span>Search {{ scView }}</div>
+              <button title="Actions" style="width:38px;height:38px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:20px">more_vert</span></button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));gap:16px">
+              <sc-for list="{{ scCards }}" as="c" hint-placeholder-count="8">
+                <div style="border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);overflow:hidden;cursor:pointer;background:var(--surface)" style-hover="border-color:var(--p);box-shadow:0 6px 18px rgba(0,0,0,.12)">
+                  <div style="height:118px;background:var(--scl);position:relative;display:grid;place-items:center;border-bottom:var(--bw) solid var(--outline-v)">
+                    <div style="width:74px;height:92px;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:6px;box-shadow:0 3px 8px rgba(0,0,0,.10);display:flex;flex-direction:column;gap:5px;padding:10px 8px"><div style="height:5px;width:70%;background:var(--outline-v);border-radius:2px"></div><div style="height:4px;width:100%;background:var(--outline-v);border-radius:2px;opacity:.6"></div><div style="height:4px;width:92%;background:var(--outline-v);border-radius:2px;opacity:.6"></div><div style="height:4px;width:80%;background:var(--outline-v);border-radius:2px;opacity:.6"></div></div>
+                    <span style="position:absolute;top:8px;right:8px;display:grid;place-items:center;width:26px;height:26px;border-radius:var(--r-sm);background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:16px">{{ c.icon }}</span></span>
+                  </div>
+                  <div style="padding:10px 12px 12px">
+                    <div style="font:500 13px/1.3 'Roboto',sans-serif;color:var(--on-s);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</div>
+                    <div style="font:400 11px/1.3 'Roboto',sans-serif;color:var(--on-sv);margin-top:2px">{{ c.meta }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- WRITER -->
+      <sc-if value="{{ isWriter }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;height:560px">
+          <div class="lo-scroll" style="flex:1;overflow:auto;background:var(--scl);padding:26px 0">
+            <div style="width:640px;max-width:92%;margin:0 auto;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 4px 20px rgba(0,0,0,.10);padding:64px 72px;min-height:760px">
+              <h1 style="margin:0 0 6px;font:700 26px/1.2 'Roboto',sans-serif;color:var(--on-s)">Q3 Board Report</h1>
+              <p style="margin:0 0 22px;font:400 13px/1.4 'Roboto',sans-serif;color:var(--on-sv)">Prepared for the Board of Directors · Confidential</p>
+              <h2 style="margin:0 0 8px;font:600 17px/1.3 'Roboto',sans-serif;color:var(--p)">Executive summary</h2>
+              <p style="margin:0 0 14px;font:400 14px/1.7 'Roboto',sans-serif;color:var(--on-s);text-align:justify">Revenue grew 18% quarter over quarter, driven by strong adoption across the enterprise segment and disciplined expansion of the direct sales team. Gross margin held steady while operating expenses moderated relative to plan.</p>
+              <p style="margin:0 0 14px;font:400 14px/1.7 'Roboto',sans-serif;color:var(--on-s);text-align:justify">The remainder of this report details performance by business unit, summarizes the updated hiring roadmap, and outlines three strategic initiatives proposed for the coming fiscal year.</p>
+              <h2 style="margin:18px 0 8px;font:600 17px/1.3 'Roboto',sans-serif;color:var(--p)">Highlights</h2>
+              <p style="margin:0;font:400 14px/1.7 'Roboto',sans-serif;color:var(--on-s);text-align:justify">Net retention reached a record 121%. Two flagship accounts renewed early at expanded scope, and the partner channel contributed a growing share of qualified pipeline.</p>
+            </div>
+          </div>
+          <div style="width:300px;flex:0 0 auto;display:flex;border-left:var(--bw) solid var(--outline-v)">
+            <div class="lo-scroll" style="flex:1;overflow:auto;background:var(--surface);padding:14px">
+              <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Properties</div>
+              <div style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Character</div>
+              <div style="display:flex;gap:6px;margin-bottom:8px">
+                <div style="flex:1;height:36px;display:flex;align-items:center;gap:6px;padding:0 8px 0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);font:400 13px/1 'Roboto',sans-serif">Liberation Serif<span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv);margin-left:auto">expand_more</span></div>
+                <div style="width:56px;height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);color:var(--on-s);font:400 13px/1 'Roboto',sans-serif">12<span style="font-family:'Material Symbols Rounded';font-size:16px;color:var(--on-sv)">expand_more</span></div>
+              </div>
+              <div style="display:flex;gap:3px;margin-bottom:16px">
+                <sc-for list="{{ charBtns }}" as="b" hint-placeholder-count="6"><button title="{{ b.tip }}" style="width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:20px">{{ b.icon }}</span></button></sc-for>
+              </div>
+              <div style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Paragraph</div>
+              <div style="display:flex;gap:3px;margin-bottom:10px">
+                <sc-for list="{{ paraBtns }}" as="b" hint-placeholder-count="6"><button title="{{ b.tip }}" style="width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:20px">{{ b.icon }}</span></button></sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;height:40px;padding:0 12px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc);font:500 13px/1 'Roboto',sans-serif"><span style="font-family:'Material Symbols Rounded';font-size:20px">lightbulb</span>Spacing above paragraph: 0.00"</div>
+            </div>
+            <div style="width:48px;flex:0 0 auto;background:var(--sc);border-left:var(--bw) solid var(--outline-v);display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:10px">
+              <sc-for list="{{ sidebarRail }}" as="r" hint-placeholder-count="5"><button title="{{ r.tip }}" style="{{ r.style }}"><span style="font-family:'Material Symbols Rounded';font-size:22px">{{ r.icon }}</span></button></sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- CALC -->
+      <sc-if value="{{ isCalc }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;height:560px">
+          <div class="lo-scroll" style="flex:1;overflow:auto;background:var(--surface)">
+            <div style="display:inline-block;min-width:100%">
+              <div style="display:flex;position:sticky;top:0;z-index:5">
+                <div style="width:44px;height:26px;flex:0 0 auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);border-bottom:var(--bw) solid var(--outline-v)"></div>
+                <sc-for list="{{ calcCols }}" as="c" hint-placeholder-count="8"><div style="{{ c.style }}">{{ c.label }}</div></sc-for>
+              </div>
+              <sc-for list="{{ calcRows }}" as="r" hint-placeholder-count="14">
+                <div style="display:flex">
+                  <div style="{{ r.headStyle }}">{{ r.num }}</div>
+                  <sc-for list="{{ r.cells }}" as="cell" hint-placeholder-count="8"><div onClick="{{ cell.onClick }}" style="{{ cell.style }}">{{ cell.val }}</div></sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div data-silent="1" style="display:flex;align-items:center;gap:2px;height:34px;padding:0 8px;background:var(--sc);border-top:var(--bw) solid var(--outline-v)">
+            <sc-for list="{{ sheetTabs }}" as="s" hint-placeholder-count="3"><button onClick="{{ s.onClick }}" style="{{ s.style }}">{{ s.label }}</button></sc-for>
+            <button title="Add Sheet" style="width:28px;height:26px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:18px">add</span></button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- IMPRESS -->
+      <sc-if value="{{ isImpress }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;height:560px">
+          <div class="lo-scroll" style="width:172px;flex:0 0 auto;overflow:auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);padding:12px 10px;display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ slides }}" as="s" hint-placeholder-count="6">
+              <div onClick="{{ s.onClick }}" style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
+                <span style="font:500 11px/1 'Roboto',sans-serif;color:var(--on-sv);width:12px;padding-top:20px;flex:0 0 auto">{{ s.num }}</span>
+                <div style="{{ s.style }}"><div style="font:600 8px/1.2 'Roboto',sans-serif;color:var(--on-s);padding:8px 8px 0">{{ s.title }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:1;background:var(--scl);display:grid;place-items:center;padding:24px">
+            <div style="width:100%;max-width:640px;aspect-ratio:16/9;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 8px 30px rgba(0,0,0,.16);border-radius:6px;padding:44px 52px;display:flex;flex-direction:column">
+              <div style="font:700 34px/1.1 'Roboto',sans-serif;color:var(--on-s);letter-spacing:-.02em">{{ slideTitle }}</div>
+              <div style="height:4px;width:96px;background:var(--p);border-radius:2px;margin:18px 0 26px"></div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;gap:12px;align-items:center;font:400 16px/1.4 'Roboto',sans-serif;color:var(--on-sv)"><span style="width:8px;height:8px;border-radius:50%;background:var(--p);flex:0 0 auto"></span>Record quarter across every product line</div>
+                <div style="display:flex;gap:12px;align-items:center;font:400 16px/1.4 'Roboto',sans-serif;color:var(--on-sv)"><span style="width:8px;height:8px;border-radius:50%;background:var(--p);flex:0 0 auto"></span>Enterprise adoption up 40% year over year</div>
+                <div style="display:flex;gap:12px;align-items:center;font:400 16px/1.4 'Roboto',sans-serif;color:var(--on-sv)"><span style="width:8px;height:8px;border-radius:50%;background:var(--p);flex:0 0 auto"></span>Three new strategic partnerships signed</div>
+              </div>
+            </div>
+          </div>
+          <div class="lo-scroll" style="width:248px;flex:0 0 auto;overflow:auto;background:var(--surface);border-left:var(--bw) solid var(--outline-v);padding:14px">
+            <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Layouts</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <sc-for list="{{ layouts }}" as="l" hint-placeholder-count="6"><div style="{{ l.style }}"><span style="font-family:'Material Symbols Rounded';font-size:24px;color:var(--on-sv)">{{ l.icon }}</span></div></sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- DRAW -->
+      <sc-if value="{{ isDraw }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;height:560px">
+          <div style="width:48px;flex:0 0 auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:10px">
+            <sc-for list="{{ drawTools }}" as="t" hint-placeholder-count="7"><button title="{{ t.tip }}" style="{{ t.style }}"><span style="font-family:'Material Symbols Rounded';font-size:22px">{{ t.icon }}</span></button></sc-for>
+          </div>
+          <div style="flex:1;background:var(--scl);display:grid;place-items:center;padding:24px;position:relative;background-image:radial-gradient(var(--outline-v) 1px,transparent 1px);background-size:22px 22px">
+            <div style="width:100%;max-width:620px;aspect-ratio:4/3;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 8px 30px rgba(0,0,0,.14);position:relative">
+              <div style="position:absolute;left:60px;top:70px;width:180px;height:96px;border-radius:var(--r-cont);background:var(--pc);border:2px solid var(--p);display:grid;place-items:center;font:600 15px/1 'Roboto',sans-serif;color:var(--on-pc)">Concept</div>
+              <div style="position:absolute;right:70px;top:120px;width:150px;height:150px;border-radius:50%;background:var(--surface);border:2px solid var(--outline);display:grid;place-items:center;font:500 14px/1 'Roboto',sans-serif;color:var(--on-sv)">Audience</div>
+              <div style="position:absolute;left:200px;top:250px;width:200px;height:64px;border-radius:var(--r-cont);background:var(--warn);display:grid;place-items:center;font:600 14px/1 'Roboto',sans-serif;color:var(--on-warn)">Launch plan</div>
+            </div>
+          </div>
+          <div class="lo-scroll" style="width:248px;flex:0 0 auto;overflow:auto;background:var(--surface);border-left:var(--bw) solid var(--outline-v);padding:14px">
+            <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Properties</div>
+            <div style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Fill</div>
+            <div style="display:flex;gap:8px;margin-bottom:16px"><div style="width:40px;height:36px;border-radius:var(--r-sm);background:var(--pc);border:var(--bw) solid var(--outline-v)"></div><div style="flex:1;height:36px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-sm);font:400 13px/1 'Roboto',sans-serif;color:var(--on-s)">Color</div></div>
+            <div style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Line</div>
+            <div style="display:flex;align-items:center;gap:12px;height:40px;padding:0 8px"><span style="font:400 13px/1 'Roboto',sans-serif;color:var(--on-sv)">Width</span><div style="flex:1;height:4px;border-radius:2px;background:var(--outline-v);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:40%;background:var(--p);border-radius:2px"></div><div style="position:absolute;left:40%;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:var(--p)"></div></div></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- BASE -->
+      <sc-if value="{{ isBase }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;height:560px">
+          <div style="width:220px;flex:0 0 auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);padding:12px 8px">
+            <div style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);padding:6px 10px 10px">Database</div>
+            <sc-for list="{{ baseNav }}" as="b" hint-placeholder-count="4"><button onClick="{{ b.onClick }}" style="{{ b.style }}"><span style="font-family:'Material Symbols Rounded';font-size:20px">{{ b.icon }}</span>{{ b.label }}</button></sc-for>
+          </div>
+          <div class="lo-scroll" style="flex:1;overflow:auto;background:var(--surface);padding:20px 24px">
+            <div style="font:600 16px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:16px">Tables</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:26px">
+              <sc-for list="{{ baseTables }}" as="t" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 12px;border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);cursor:pointer;background:var(--surface)" style-hover="border-color:var(--p);background:var(--pc)"><span style="display:grid;place-items:center;width:44px;height:44px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:24px">table</span></span><span style="font:500 13px/1 'Roboto',sans-serif;color:var(--on-s)">{{ t }}</span></div></sc-for>
+            </div>
+            <div style="border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);overflow:hidden">
+              <div style="display:flex;background:var(--sc);border-bottom:var(--bw) solid var(--outline-v)"><div style="flex:2;padding:10px 14px;font:600 12px/1 'Roboto',sans-serif;color:var(--on-sv)">Company</div><div style="flex:2;padding:10px 14px;font:600 12px/1 'Roboto',sans-serif;color:var(--on-sv)">Contact</div><div style="flex:1;padding:10px 14px;font:600 12px/1 'Roboto',sans-serif;color:var(--on-sv)">City</div></div>
+              <sc-for list="{{ baseRows }}" as="r" hint-placeholder-count="4"><div style="{{ r.style }}"><div style="flex:2;padding:10px 14px;font:400 13px/1 'Roboto',sans-serif;color:var(--on-s)">{{ r.a }}</div><div style="flex:2;padding:10px 14px;font:400 13px/1 'Roboto',sans-serif;color:var(--on-s)">{{ r.b }}</div><div style="flex:1;padding:10px 14px;font:400 13px/1 'Roboto',sans-serif;color:var(--on-s)">{{ r.c }}</div></div></sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- MATH -->
+      <sc-if value="{{ isMath }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;height:560px">
+          <div style="flex:1;background:var(--scl);display:grid;place-items:center;padding:24px">
+            <div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:44px 60px;font:400 34px/1.4 'Roboto',serif;color:var(--on-s)">E = mc²  ·  ∑<span style="font-size:20px;vertical-align:sub">i=1</span><span style="font-size:20px;vertical-align:super">n</span> x<span style="font-size:20px;vertical-align:sub">i</span></div>
+          </div>
+          <div style="display:flex;border-top:var(--bw) solid var(--outline-v)">
+            <div class="lo-scroll" style="flex:1;padding:14px 18px">
+              <div style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv);margin-bottom:8px">Commands</div>
+              <div style="min-height:80px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);padding:12px 14px;font:400 15px/1.6 'Roboto Mono',monospace;color:var(--on-s);background:var(--surface)">E = m c^2 newline sum from{i=1} to{n} x_i</div>
+            </div>
+            <div style="width:240px;flex:0 0 auto;border-left:var(--bw) solid var(--outline-v);padding:14px">
+              <div style="font:600 13px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:12px">Elements</div>
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+                <sc-for list="{{ mathSyms }}" as="s" hint-placeholder-count="15"><div style="aspect-ratio:1;display:grid;place-items:center;border:var(--bw) solid var(--outline-v);border-radius:var(--r-sm);font:400 18px/1 'Roboto',serif;color:var(--on-s);cursor:pointer;background:var(--surface)" style-hover="background:var(--pc);color:var(--on-pc);border-color:var(--p)">{{ s }}</div></sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- COMPONENT GALLERY -->
+      <sc-if value="{{ isGallery }}" hint-placeholder-val="{{ true }}">
+        <div class="lo-scroll" style="height:600px;overflow:auto;background:var(--scl);padding:28px 30px">
+          <h1 style="margin:0 0 4px;font:700 26px/1.1 'Roboto',sans-serif;letter-spacing:-.02em;color:var(--on-s)">Material components &amp; tokens</h1>
+          <p style="margin:0 0 26px;color:var(--on-sv);font:400 14px/1.5 'Roboto',sans-serif">Every value below resolves from the semantic roles in <code style="font-family:'Roboto Mono',monospace;font-size:12px;background:var(--sc);padding:2px 6px;border-radius:6px">material/definition.xml</code>.</p>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;align-items:start">
+
+            <div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:18px">
+              <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Color roles</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <sc-for list="{{ swatches }}" as="s" hint-placeholder-count="10"><div style="{{ s.style }}"><span style="font:600 11px/1.2 'Roboto',sans-serif">{{ s.name }}</span><span style="font:400 10px/1 'Roboto Mono',monospace;opacity:.8">{{ s.hex }}</span></div></sc-for>
+              </div>
+            </div>
+
+            <div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:18px">
+              <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Buttons</div>
+              <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+                <button style="height:40px;padding:0 24px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pa-hover)">Filled</button>
+                <button style="height:40px;padding:0 24px;border:none;border-radius:var(--r-pill);background:var(--pc);color:var(--on-pc);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--p-hover)">Tonal</button>
+                <button style="height:40px;padding:0 24px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pc)">Outlined</button>
+                <button style="height:40px;padding:0 16px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pc)">Text</button>
+                <button disabled style="height:40px;padding:0 24px;border:none;border-radius:var(--r-pill);background:var(--disabled);color:var(--outline);font:500 14px/1 'Roboto',sans-serif;cursor:not-allowed">Disabled</button>
+                <button title="Add" style="width:56px;height:56px;border:none;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc);cursor:pointer;display:grid;place-items:center;box-shadow:0 3px 8px rgba(0,0,0,.16)" style-hover="background:var(--p-hover)"><span style="font-family:'Material Symbols Rounded';font-size:24px">add</span></button>
+              </div>
+            </div>
+
+            <div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:18px">
+              <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Selection</div>
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <label onClick="{{ toggleCheck }}" style="display:flex;align-items:center;gap:12px;cursor:pointer"><span style="{{ checkBox }}"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-p);opacity:{{ checkOp }}">check</span></span><span style="font:400 14px/1 'Roboto',sans-serif;color:var(--on-s)">Enable Material widgets</span></label>
+                <div style="display:flex;gap:18px">
+                  <sc-for list="{{ radios }}" as="r" hint-placeholder-count="3"><label onClick="{{ r.onClick }}" style="display:flex;align-items:center;gap:8px;cursor:pointer"><span style="{{ r.ring }}"><span style="width:10px;height:10px;border-radius:50%;background:var(--on-p);opacity:{{ r.dotOp }}"></span></span><span style="font:400 13px/1 'Roboto',sans-serif;color:var(--on-s)">{{ r.label }}</span></label></sc-for>
+                </div>
+                <div onClick="{{ toggleSwitch }}" style="display:flex;align-items:center;gap:12px;cursor:pointer"><span style="{{ switchTrack }}"><span style="{{ switchThumb }}"></span></span><span style="font:400 14px/1 'Roboto',sans-serif;color:var(--on-s)">Comfortable density</span></div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px">
+                  <sc-for list="{{ chips }}" as="c" hint-placeholder-count="3"><button onClick="{{ c.onClick }}" style="{{ c.style }}"><span style="font-family:'Material Symbols Rounded';font-size:18px;opacity:{{ c.iconOp }}">check</span>{{ c.label }}</button></sc-for>
+                </div>
+              </div>
+            </div>
+
+            <div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:18px">
+              <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Text fields</div>
+              <div style="display:flex;flex-direction:column;gap:16px">
+                <div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--p);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 'Roboto',sans-serif">Q3 Board Report</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--surface);color:var(--p);font:500 12px/1 'Roboto',sans-serif">Document name</span></div>
+                <div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-sv);font:400 14px/1 'Roboto',sans-serif">Optional subtitle</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--surface);color:var(--on-sv);font:500 12px/1 'Roboto',sans-serif">Subtitle</span></div>
+                <div><div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--err-base);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 'Roboto',sans-serif">/backups/old</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--surface);color:var(--err-base);font:500 12px/1 'Roboto',sans-serif">Backup path</span><span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-family:'Material Symbols Rounded';font-size:20px;color:var(--err-base)">error</span></div><div style="font:400 12px/1.3 'Roboto',sans-serif;color:var(--err-base);padding:6px 14px 0">The path does not exist.</div></div>
+                <div style="height:44px;display:flex;align-items:center;gap:10px;padding:0 16px;border-radius:var(--r-pill);background:var(--sc);color:var(--on-sv);font:400 14px/1 'Roboto',sans-serif"><span style="font-family:'Material Symbols Rounded';font-size:20px">search</span>Search commands</div>
+              </div>
+            </div>
+
+            <div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:18px">
+              <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Tabs</div>
+              <div style="display:inline-flex;gap:6px;padding:4px;border-radius:var(--r-pill);background:var(--sc);margin-bottom:16px">
+                <sc-for list="{{ galTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button></sc-for>
+              </div>
+              <div style="font:400 13px/1.5 'Roboto',sans-serif;color:var(--on-sv)">{{ galTabBody }}</div>
+            </div>
+
+            <div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:18px">
+              <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Feedback</div>
+              <div style="font:400 12px/1 'Roboto',sans-serif;color:var(--on-sv);margin-bottom:6px">Progress</div>
+              <div style="height:4px;border-radius:var(--r-ind);background:var(--outline-v);margin-bottom:16px"><div style="width:64%;height:100%;border-radius:var(--r-ind);background:var(--p)"></div></div>
+              <div style="font:400 12px/1 'Roboto',sans-serif;color:var(--on-sv);margin-bottom:6px">Slider — {{ gSlider }}%</div>
+              <div onClick="{{ nudgeSlider }}" style="height:20px;display:flex;align-items:center;margin-bottom:16px;cursor:pointer"><div style="flex:1;height:4px;border-radius:2px;background:var(--outline-v);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ gSlider }}%;background:var(--p);border-radius:2px"></div><div style="position:absolute;left:{{ gSlider }}%;top:50%;transform:translate(-50%,-50%);width:18px;height:18px;border-radius:50%;background:var(--p);box-shadow:0 1px 4px rgba(0,0,0,.3)"></div></div></div>
+              <div style="font:400 12px/1 'Roboto',sans-serif;color:var(--on-sv);margin-bottom:6px">Level indicator</div>
+              <div style="display:flex;gap:4px;margin-bottom:16px"><div style="flex:1;height:8px;border-radius:var(--r-ind);background:var(--err)"></div><div style="flex:1;height:8px;border-radius:var(--r-ind);background:var(--warn)"></div><div style="flex:1;height:8px;border-radius:var(--r-ind);background:var(--p-hover)"></div><div style="flex:1;height:8px;border-radius:var(--r-ind);background:var(--p)"></div></div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--r-cont);background:var(--warn);color:var(--on-warn);font:400 13px/1.3 'Roboto',sans-serif"><span style="font-family:'Material Symbols Rounded';font-size:20px">warning</span>Document contains unsaved changes.</div>
+            </div>
+
+            <div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:18px">
+              <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Lists &amp; menu</div>
+              <div style="border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);overflow:hidden;margin-bottom:14px">
+                <sc-for list="{{ listItems }}" as="l" hint-placeholder-count="3"><div style="{{ l.style }}"><span style="font-family:'Material Symbols Rounded';font-size:20px;color:var(--on-sv)">{{ l.icon }}</span><span style="flex:1;font:400 13px/1 'Roboto',sans-serif;color:var(--on-s)">{{ l.label }}</span><sc-if value="{{ l.check }}"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--p)">check</span></sc-if></div></sc-for>
+              </div>
+              <div style="border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.10)">
+                <div style="display:flex;align-items:center;gap:12px;height:36px;padding:0 12px;border-radius:8px;background:var(--pc);color:var(--on-pc);font:400 13px/1 'Roboto',sans-serif"><span style="font-family:'Material Symbols Rounded';font-size:18px">content_paste</span>Paste<span style="margin-left:auto;font:400 12px/1 'Roboto Mono',monospace">Ctrl+V</span></div>
+                <div style="display:flex;align-items:center;gap:12px;height:36px;padding:0 12px;border-radius:8px;color:var(--on-s);font:400 13px/1 'Roboto',sans-serif"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv)">content_copy</span>Copy<span style="margin-left:auto;font:400 12px/1 'Roboto Mono',monospace;color:var(--on-sv)">Ctrl+C</span></div>
+              </div>
+            </div>
+
+            <div style="background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:18px">
+              <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:14px">Shape scale</div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ shapeScale }}" as="s" hint-placeholder-count="8"><div style="display:flex;align-items:center;gap:14px"><div style="width:56px;height:36px;background:var(--pc);border:var(--bw) solid var(--outline-v);border-radius:{{ s.r }}px;flex:0 0 auto"></div><span style="font:500 12px/1 'Roboto',sans-serif;color:var(--on-s);flex:1">{{ s.name }}</span><span style="font:400 12px/1 'Roboto Mono',monospace;color:var(--on-sv)">{{ s.r }}px</span></div></sc-for>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- HISTORY (auto-commit version manager) -->
+      <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;height:600px">
+          <div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:var(--bw) solid var(--outline-v)">
+            <div style="flex:1;min-width:0">
+              <h1 style="margin:0;font:700 22px/1.1 'Roboto',sans-serif;letter-spacing:-.02em;color:var(--on-s)">Version history</h1>
+              <p style="margin:4px 0 0;color:var(--on-sv);font:400 13px/1.4 'Roboto',sans-serif">Every undoable change is auto-committed — select any point to view the exact document at that time.</p>
+            </div>
+            <div data-silent="1" style="display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:var(--sc);border:var(--bw) solid var(--outline-v);flex:0 0 auto">
+              <sc-for list="{{ histScopes }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button></sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex:1;min-height:0">
+            <div class="lo-scroll" data-silent="1" style="width:308px;flex:0 0 auto;overflow:auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);padding:6px 10px 20px">
+              <sc-for list="{{ histRows }}" as="r" hint-placeholder-count="10">
+                <sc-if value="{{ r.header }}"><div style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--on-sv);padding:14px 8px 6px">{{ r.label }}</div></sc-if>
+                <sc-if value="{{ r.item }}"><div onClick="{{ r.onClick }}" style="{{ r.style }}"><span style="{{ r.dotStyle }}"></span><div style="flex:1;min-width:0"><div style="font:500 13px/1.35 'Roboto',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.action }}</div><div style="font:400 11px/1 'Roboto',sans-serif;color:var(--on-sv);margin-top:3px">{{ r.time }}</div></div><sc-if value="{{ r.current }}"><span style="font:600 9px/1 'Roboto',sans-serif;letter-spacing:.05em;padding:3px 7px;border-radius:6px;background:var(--p);color:var(--on-p);height:fit-content">NOW</span></sc-if></div></sc-if>
+              </sc-for>
+            </div>
+            <div class="lo-scroll" style="flex:1;overflow:auto;background:var(--scl);padding:22px;min-width:0">
+              <sc-if value="{{ histSelObj.hasDoc }}">
+                <div style="width:600px;max-width:94%;margin:0 auto;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 4px 20px rgba(0,0,0,.10);padding:52px 60px;min-height:520px">
+                  <h1 style="margin:0 0 6px;font:700 24px/1.2 'Roboto',sans-serif;color:var(--on-s)">{{ histSelObj.docTitle }}</h1>
+                  <p style="margin:0 0 22px;font:400 12px/1.4 'Roboto',sans-serif;color:var(--on-sv)">{{ histSelObj.docSub }}</p>
+                  <sc-for list="{{ histSelObj.blocks }}" as="b" hint-placeholder-count="4"><div style="{{ b.style }}">{{ b.text }}</div></sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ histSelObj.noDoc }}">
+                <div style="width:420px;max-width:94%;margin:40px auto 0;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:var(--r-cont);padding:36px;text-align:center">
+                  <span style="display:grid;place-items:center;width:64px;height:64px;margin:0 auto 16px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc)"><span style="font-family:'Material Symbols Rounded';font-size:34px">{{ histSelObj.appIcon }}</span></span>
+                  <div style="font:600 16px/1.3 'Roboto',sans-serif;color:var(--on-s)">{{ histSelObj.file }}</div>
+                  <div style="font:400 13px/1.4 'Roboto',sans-serif;color:var(--on-sv);margin-top:6px">Snapshot from {{ histSelObj.time }}</div>
+                </div>
+              </sc-if>
+            </div>
+            <div class="lo-scroll" style="width:300px;flex:0 0 auto;overflow:auto;background:var(--sc);border-left:var(--bw) solid var(--outline-v);padding:18px">
+              <div style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv)">Snapshot</div>
+              <div style="font:700 20px/1.2 'Roboto',sans-serif;color:var(--on-s);margin:8px 0 4px">{{ histSelObj.time }}</div>
+              <div style="font:400 13px/1.45 'Roboto',sans-serif;color:var(--on-sv);margin-bottom:16px">{{ histSelObj.action }}</div>
+              <div style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:var(--r-cont);background:var(--surface);border:var(--bw) solid var(--outline-v);margin-bottom:8px"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv)">person</span><span style="font:400 13px/1 'Roboto',sans-serif;color:var(--on-s)">{{ histSelObj.author }}</span></div>
+              <div style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:var(--r-cont);background:var(--surface);border:var(--bw) solid var(--outline-v);margin-bottom:8px"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv)">tag</span><span style="font:400 12px/1 'Roboto Mono',monospace;color:var(--on-s)">{{ histSelObj.hash }}</span></div>
+              <div style="display:flex;gap:8px;margin-bottom:18px"><span style="flex:1;text-align:center;padding:7px;border-radius:var(--r-sm);background:var(--pc);color:var(--on-pc);font:600 12px/1 'Roboto Mono',monospace">+{{ histSelObj.added }} words</span><span style="flex:1;text-align:center;padding:7px;border-radius:var(--r-sm);background:var(--err);color:var(--on-err);font:600 12px/1 'Roboto Mono',monospace">−{{ histSelObj.removed }}</span></div>
+              <sc-if value="{{ histSelObj.current }}"><div style="height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--r-pill);background:var(--disabled);color:var(--on-sv);font:600 14px/1 'Roboto',sans-serif;margin-bottom:8px"><span style="font-family:'Material Symbols Rounded';font-size:20px">check</span>Current version</div></sc-if>
+              <sc-if value="{{ histSelObj.hasDoc }}"><button title="Restore this version" style="width:100%;height:44px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:600 14px/1 'Roboto',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px" style-hover="background:var(--pa-hover)"><span style="font-family:'Material Symbols Rounded';font-size:20px">restore</span>Restore this version</button></sc-if>
+              <button title="Compare with current" style="width:100%;height:44px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:600 14px/1 'Roboto',sans-serif;cursor:pointer;margin-bottom:8px" style-hover="background:var(--pc)">Compare with current</button>
+              <div style="display:flex;gap:8px"><button title="Create branch" style="flex:1;height:40px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 13px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pc)">Branch</button><button title="Export snapshot" style="flex:1;height:40px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 13px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pc)">Export</button></div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- FEATURES (every command in the suite) -->
+      <sc-if value="{{ isCodebase }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;height:600px">
+          <div data-silent="1" class="lo-scroll" style="width:220px;flex:0 0 auto;overflow:auto;background:var(--sc);border-right:var(--bw) solid var(--outline-v);padding:12px 8px">
+            <div style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--on-sv);padding:6px 10px 10px">Applications</div>
+            <sc-for list="{{ featScopes }}" as="s" hint-placeholder-count="9">
+              <button onClick="{{ s.onClick }}" style="{{ s.style }}"><span style="font-family:'Material Symbols Rounded';font-size:20px">{{ s.icon }}</span><span style="flex:1;text-align:left">{{ s.label }}</span><span style="font:600 11px/1 'Roboto Mono',monospace;opacity:.7">{{ s.count }}</span></button>
+            </sc-for>
+            <div style="height:1px;background:var(--outline-v);margin:10px 8px"></div>
+            <div style="padding:4px 10px;font:400 11px/1.5 'Roboto',sans-serif;color:var(--on-sv)">Every command adopts the shared Material controls.</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+            <div style="padding:16px 18px 12px;border-bottom:var(--bw) solid var(--outline-v)">
+              <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px"><h1 style="margin:0;font:700 24px/1.1 'Roboto',sans-serif;letter-spacing:-.02em;color:var(--on-s)">Features</h1><span style="font:400 13px/1 'Roboto',sans-serif;color:var(--on-sv)">{{ featShown }} of {{ featCount }} commands</span></div>
+              <div style="height:44px;display:flex;align-items:center;gap:10px;padding:0 14px;border-radius:var(--r-pill);background:var(--sc);border:var(--bw) solid var(--outline-v)"><span style="font-family:'Material Symbols Rounded';font-size:20px;color:var(--on-sv)">search</span><input value="{{ featQuery }}" onChange="{{ onFeatSearch }}" placeholder="Search every command…" style="flex:1;min-width:0;border:none;background:transparent;outline:none;color:var(--on-s);font:400 14px/1 'Roboto',sans-serif"></div>
+            </div>
+            <div class="lo-scroll" style="flex:1;overflow:auto;padding:8px 12px">
+              <sc-for list="{{ featItems }}" as="f" hint-placeholder-count="14">
+                <div onClick="{{ f.onClick }}" style="{{ f.style }}"><span style="width:8px;height:8px;border-radius:2px;background:var(--p);flex:0 0 auto"></span><span style="flex:1;font:500 13px/1.3 'Roboto',sans-serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.name }}</span><span style="font:500 11px/1 'Roboto',sans-serif;color:var(--on-sv);padding:3px 8px;border-radius:var(--r-pill);background:var(--sc);flex:0 0 auto">{{ f.scope }}</span></div>
+              </sc-for>
+              <sc-if value="{{ featCapped }}"><div style="padding:14px 12px;text-align:center;color:var(--on-sv);font:400 12px/1.4 'Roboto',sans-serif">Showing the first 400 matches — refine your search to narrow further.</div></sc-if>
+            </div>
+          </div>
+          <div class="lo-scroll" style="width:300px;flex:0 0 auto;overflow:auto;background:var(--sc);border-left:var(--bw) solid var(--outline-v);padding:18px">
+            <span style="font:700 11px/1 'Roboto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--on-sv)">{{ featSelObj.scope }} · {{ featSelObj.area }}</span>
+            <div style="font:700 22px/1.2 'Roboto',sans-serif;color:var(--on-s);margin:8px 0 14px;letter-spacing:-.01em">{{ featSelObj.name }}</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--r-cont);background:var(--surface);border:var(--bw) solid var(--outline-v);margin-bottom:16px"><span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv)">keyboard_command_key</span><span style="font:400 12px/1.3 'Roboto Mono',monospace;color:var(--on-s)">{{ featSelObj.where }}</span></div>
+            <div style="padding:14px;border-radius:var(--r-cont);background:var(--pc);color:var(--on-pc);font:400 13px/1.5 'Roboto',sans-serif;margin-bottom:18px">{{ featSelObj.note }}</div>
+            <button title="Run command" style="width:100%;height:44px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:600 14px/1 'Roboto',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:var(--pa-hover)"><span style="font-family:'Material Symbols Rounded';font-size:20px">play_arrow</span>Run command</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- DIALOGS -->
+      <sc-if value="{{ isDialogs }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative;height:600px;background:var(--scl);overflow:hidden">
+          <div style="position:absolute;inset:0;opacity:.4;filter:blur(1px);padding:40px 60px"><div style="height:100%;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:6px"></div></div>
+          <div style="position:absolute;inset:0;background:var(--scrim)"></div>
+          <div data-silent="1" style="position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:5;display:inline-flex;gap:2px;padding:3px;border-radius:20px;background:var(--surface);border:var(--bw) solid var(--outline-v);box-shadow:0 4px 12px rgba(0,0,0,.2)">
+            <sc-for list="{{ dialogPick }}" as="d" hint-placeholder-count="3"><button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button></sc-for>
+          </div>
+
+          <!-- Options dialog -->
+          <sc-if value="{{ isOptions }}">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(760px,94%);background:var(--sc);border:var(--bw) solid var(--outline-v);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.4);overflow:hidden;animation:lo-pop .16s ease">
+              <div style="display:flex;align-items:center;padding:18px 20px 14px"><span style="font:600 18px/1 'Roboto',sans-serif;color:var(--on-s)">Options — LibreOffice Writer</span><button title="Close" style="margin-left:auto;width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--outline-v)"><span style="font-family:'Material Symbols Rounded';font-size:20px">close</span></button></div>
+              <div style="display:flex;height:340px">
+                <div class="lo-scroll" style="width:220px;flex:0 0 auto;overflow:auto;padding:0 8px 8px">
+                  <sc-for list="{{ optNav }}" as="o" hint-placeholder-count="6"><div style="{{ o.style }}"><span style="width:{{ o.indent }}px;flex:0 0 auto"></span><span style="font-family:'Material Symbols Rounded';font-size:18px;color:var(--on-sv);opacity:{{ o.arrowOp }}">{{ o.arrow }}</span><span style="font:400 13px/1 'Roboto',sans-serif">{{ o.label }}</span></div></sc-for>
+                </div>
+                <div class="lo-scroll" style="flex:1;overflow:auto;background:var(--surface);border-left:var(--bw) solid var(--outline-v);border-top-left-radius:12px;padding:20px 22px">
+                  <div style="font:600 14px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:16px">User Data</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 14px">
+                    <div style="position:relative"><div style="height:44px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-s);font:400 13px/1 'Roboto',sans-serif">Alex</div><span style="position:absolute;top:-7px;left:10px;padding:0 4px;background:var(--surface);color:var(--on-sv);font:500 11px/1 'Roboto',sans-serif">First name</span></div>
+                    <div style="position:relative"><div style="height:44px;display:flex;align-items:center;padding:0 12px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-s);font:400 13px/1 'Roboto',sans-serif">Rivera</div><span style="position:absolute;top:-7px;left:10px;padding:0 4px;background:var(--surface);color:var(--on-sv);font:500 11px/1 'Roboto',sans-serif">Last name</span></div>
+                    <div style="position:relative;grid-column:1/-1"><div style="height:44px;display:flex;align-items:center;padding:0 12px;border:2px solid var(--p);border-radius:var(--r-cont);color:var(--on-s);font:400 13px/1 'Roboto',sans-serif">alex.rivera@example.com<span style="width:2px;height:18px;background:var(--p);margin-left:2px;animation:lo-pop 1s steps(2) infinite"></span></div><span style="position:absolute;top:-7px;left:10px;padding:0 4px;background:var(--surface);color:var(--p);font:500 11px/1 'Roboto',sans-serif">Email <span style="color:var(--on-sv)">· focused</span></span></div>
+                    <div style="position:relative;grid-column:1/-1"><div style="height:44px;display:flex;align-items:center;padding:0 12px;border:2px solid var(--err-base);border-radius:var(--r-cont);color:var(--on-s);font:400 13px/1 'Roboto',sans-serif">/backups/old</div><span style="position:absolute;top:-7px;left:10px;padding:0 4px;background:var(--surface);color:var(--err-base);font:500 11px/1 'Roboto',sans-serif">Backup path</span></div>
+                  </div>
+                  <div style="font:400 12px/1.3 'Roboto',sans-serif;color:var(--err-base);padding:6px 2px 0">The path does not exist. Choose an existing folder.</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;border-top:var(--bw) solid var(--outline-v)">
+                <button style="height:40px;padding:0 20px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pc)">Help</button>
+                <div style="flex:1"></div>
+                <button style="height:40px;padding:0 20px;border:none;border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pc)">Reset</button>
+                <button style="height:40px;padding:0 20px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pc)">Cancel</button>
+                <button style="height:40px;padding:0 28px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pa-hover)">OK</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- Save dialog -->
+          <sc-if value="{{ isSave }}">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(560px,94%);background:var(--sc);border:var(--bw) solid var(--outline-v);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.4);overflow:hidden;animation:lo-pop .16s ease">
+              <div style="display:flex;align-items:center;padding:18px 20px 14px"><span style="font:600 18px/1 'Roboto',sans-serif;color:var(--on-s)">Save As</span><button title="Close" style="margin-left:auto;width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--outline-v)"><span style="font-family:'Material Symbols Rounded';font-size:20px">close</span></button></div>
+              <div style="padding:4px 20px 20px">
+                <div style="display:flex;gap:6px;align-items:center;font:400 13px/1 'Roboto',sans-serif;color:var(--on-sv);margin-bottom:16px"><span style="font-family:'Material Symbols Rounded';font-size:18px">folder</span>Documents<span style="font-family:'Material Symbols Rounded';font-size:16px">chevron_right</span><span style="color:var(--on-s)">Reports</span></div>
+                <div style="position:relative;margin-bottom:16px"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--p);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 'Roboto',sans-serif;background:var(--surface)">Q3 Board Report</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--sc);color:var(--p);font:500 12px/1 'Roboto',sans-serif">File name</span></div>
+                <div style="position:relative;margin-bottom:16px"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 'Roboto',sans-serif;background:var(--surface)">ODF Text Document (.odt)<span style="font-family:'Material Symbols Rounded';font-size:20px;color:var(--on-sv);margin-left:auto">expand_more</span></div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--sc);color:var(--on-sv);font:500 12px/1 'Roboto',sans-serif">File type</span></div>
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><span style="width:20px;height:20px;border-radius:var(--r-check);background:var(--p);display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:15px;color:var(--on-p)">check</span></span><span style="font:400 13px/1 'Roboto',sans-serif;color:var(--on-s)">Save with password</span></label>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;border-top:var(--bw) solid var(--outline-v)">
+                <div style="flex:1"></div>
+                <button style="height:40px;padding:0 20px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pc)">Cancel</button>
+                <button style="height:40px;padding:0 28px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pa-hover)">Save</button>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- Print dialog -->
+          <sc-if value="{{ isPrint }}">
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(720px,94%);background:var(--sc);border:var(--bw) solid var(--outline-v);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.4);overflow:hidden;animation:lo-pop .16s ease">
+              <div style="display:flex;align-items:center;padding:18px 20px 14px"><span style="font:600 18px/1 'Roboto',sans-serif;color:var(--on-s)">Print</span><button title="Close" style="margin-left:auto;width:34px;height:34px;border:none;background:transparent;border-radius:var(--r-sm);color:var(--on-sv);cursor:pointer;display:grid;place-items:center" style-hover="background:var(--outline-v)"><span style="font-family:'Material Symbols Rounded';font-size:20px">close</span></button></div>
+              <div style="display:flex;gap:20px;padding:4px 20px 20px">
+                <div style="width:220px;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:12px"><div style="width:170px;height:220px;background:var(--surface);border:var(--bw) solid var(--outline-v);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.14);padding:20px 18px;display:flex;flex-direction:column;gap:6px"><div style="height:9px;width:70%;background:var(--outline-v);border-radius:2px"></div><div style="height:5px;width:100%;background:var(--outline-v);border-radius:2px;opacity:.5;margin-top:6px"></div><div style="height:5px;width:96%;background:var(--outline-v);border-radius:2px;opacity:.5"></div><div style="height:5px;width:90%;background:var(--outline-v);border-radius:2px;opacity:.5"></div></div><div style="display:flex;align-items:center;gap:10px"><button style="width:32px;height:32px;border:var(--bw) solid var(--outline-v);background:var(--surface);border-radius:50%;color:var(--on-sv);cursor:pointer;display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:18px">chevron_left</span></button><span style="font:400 13px/1 'Roboto',sans-serif;color:var(--on-sv)">1 / 3</span><button style="width:32px;height:32px;border:var(--bw) solid var(--outline-v);background:var(--surface);border-radius:50%;color:var(--on-sv);cursor:pointer;display:grid;place-items:center"><span style="font-family:'Material Symbols Rounded';font-size:18px">chevron_right</span></button></div></div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:16px">
+                  <div style="position:relative"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:var(--bw) solid var(--outline);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 'Roboto',sans-serif;background:var(--surface)">HP LaserJet Pro M404<span style="font-family:'Material Symbols Rounded';font-size:20px;color:var(--on-sv);margin-left:auto">expand_more</span></div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--sc);color:var(--on-sv);font:500 12px/1 'Roboto',sans-serif">Printer</span></div>
+                  <div style="position:relative;width:120px"><div style="height:48px;display:flex;align-items:center;padding:0 14px;border:2px solid var(--p);border-radius:var(--r-cont);color:var(--on-s);font:400 14px/1 'Roboto',sans-serif;background:var(--surface)">1</div><span style="position:absolute;top:-8px;left:12px;padding:0 4px;background:var(--sc);color:var(--p);font:500 12px/1 'Roboto',sans-serif">Copies</span></div>
+                  <div><div style="font:500 13px/1 'Roboto',sans-serif;color:var(--on-s);margin-bottom:10px">Range</div><div style="display:flex;flex-direction:column;gap:10px"><sc-for list="{{ printRanges }}" as="p" hint-placeholder-count="3"><label onClick="{{ p.onClick }}" style="display:flex;align-items:center;gap:10px;cursor:pointer"><span style="{{ p.ring }}"><span style="width:10px;height:10px;border-radius:50%;background:var(--on-p);opacity:{{ p.dotOp }}"></span></span><span style="font:400 13px/1 'Roboto',sans-serif;color:var(--on-s)">{{ p.label }}</span></label></sc-for></div></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:14px 20px;border-top:var(--bw) solid var(--outline-v)">
+                <div style="flex:1"></div>
+                <button style="height:40px;padding:0 20px;border:var(--bw) solid var(--outline);border-radius:var(--r-pill);background:transparent;color:var(--p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pc)">Cancel</button>
+                <button style="height:40px;padding:0 28px;border:none;border-radius:var(--r-pill);background:var(--p);color:var(--on-p);font:500 14px/1 'Roboto',sans-serif;cursor:pointer" style-hover="background:var(--pa-hover)">Print</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- Status bar -->
+      <sc-if value="{{ showStatus }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:16px;height:28px;padding:0 14px;background:var(--sc);border-top:var(--bw) solid var(--outline-v)">
+          <sc-for list="{{ statusLeft }}" as="s" hint-placeholder-count="3"><span style="font:400 12px/1 'Roboto',sans-serif;color:var(--on-sv)">{{ s }}</span></sc-for>
+          <div style="flex:1"></div>
+          <span style="font:400 12px/1 'Roboto',sans-serif;color:var(--on-sv)">100%</span>
+          <div style="width:120px;height:4px;border-radius:2px;background:var(--outline-v);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:50%;background:var(--p);border-radius:2px"></div><div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;background:var(--p)"></div></div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+  <div style="text-align:center;color:var(--on-sv);font:400 12px/1.5 'Roboto',sans-serif;padding:6px 20px 0;max-width:900px">
+    Prototype — color, shape, type and metrics resolve from <span style="font-family:'Roboto Mono',monospace">vcl/uiconfig/theme_definitions/material/definition.xml</span>. Switch theme, density and chrome above; navigate the suite with the Surface control.
+  </div>
+
+  <sc-if value="{{ toast }}"><div style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:120;display:flex;align-items:center;gap:12px;padding:13px 20px;border-radius:var(--r-sm);background:var(--inv-s);color:var(--on-inv-s);box-shadow:0 10px 30px rgba(0,0,0,.4);font:500 13px/1 'Roboto',sans-serif;animation:lo-pop .16s ease"><span style="font-family:'Material Symbols Rounded';font-size:20px;color:var(--p)">bolt</span>{{ toast }}</div></sc-if>
+
+  <!-- click-away layer for open menus -->
+  <sc-if value="{{ menuOpen }}"><div onClick="{{ closeMenus }}" style="position:fixed;inset:0;z-index:20"></div></sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;start&quot;,&quot;options&quot;:[&quot;start&quot;,&quot;writer&quot;,&quot;calc&quot;,&quot;impress&quot;,&quot;draw&quot;,&quot;base&quot;,&quot;math&quot;,&quot;gallery&quot;,&quot;dialogs&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;light&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;,&quot;hc&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;comfortable&quot;,&quot;options&quot;:[&quot;compact&quot;,&quot;comfortable&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;chrome&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;classic&quot;,&quot;options&quot;:[&quot;classic&quot;,&quot;ribbon&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;}}">
+const PAL = {
+  light:{p:'#6750A4',onP:'#FFFFFF',pc:'#E8DEF8',onPc:'#1D192B',pHover:'#D0BCFF',pPressed:'#CCC2DC',paHover:'#7965AF',paPressed:'#5B3F91',surface:'#FFFBFE',sc:'#F3EDF7',scl:'#F7F2FA',onS:'#1D1B20',onSv:'#49454F',outline:'#79747E',outlineV:'#CAC4D0',disabled:'#E6E0E9',invS:'#313033',onInvS:'#F4EFF4',warn:'#FFDDB3',onWarn:'#2A1800',err:'#F9DEDC',onErr:'#410E0B',errBase:'#B3261E',visited:'#7D5260',desk:'#E7E0EC',scrim:'rgba(20,18,24,.38)'},
+  dark:{p:'#D0BCFF',onP:'#381E72',pc:'#4F378B',onPc:'#EADDFF',pHover:'#4F378B',pPressed:'#625B71',paHover:'#C4AEFF',paPressed:'#B69DF8',surface:'#141218',sc:'#211F26',scl:'#1D1B20',onS:'#E6E0E9',onSv:'#CAC4D0',outline:'#938F99',outlineV:'#49454F',disabled:'#36343B',invS:'#2B2930',onInvS:'#E6E0E9',warn:'#5F4100',onWarn:'#FFDDB3',err:'#8C1D18',onErr:'#F9DEDC',errBase:'#F2B8B5',visited:'#EFB8C8',desk:'#0B0A0E',scrim:'rgba(0,0,0,.6)'},
+  hc:{p:'#3800A0',onP:'#FFFFFF',pc:'#E4D6FF',onPc:'#10004D',pHover:'#280078',pPressed:'#1C0056',paHover:'#280078',paPressed:'#1C0056',surface:'#FFFFFF',sc:'#FFFFFF',scl:'#F0F0F0',onS:'#000000',onSv:'#141414',outline:'#000000',outlineV:'#000000',disabled:'#C4C4C4',invS:'#000000',onInvS:'#FFFFFF',warn:'#FFE0A3',onWarn:'#3A2500',err:'#FFD6D2',onErr:'#5A0000',errBase:'#B3000C',visited:'#4A0052',desk:'#000000',scrim:'rgba(0,0,0,.65)'}
+};
+
+const M=(l,k,sub)=>({item:true,l,k:k||'',subOp:sub?1:0});
+const SEP={sep:true};
+const MENUS={
+  File:[M('New',' ',true),M('Open…','Ctrl+O'),M('Open Remote…'),M('Recent Documents',' ',true),SEP,M('Save','Ctrl+S'),M('Save As…','Ctrl+Shift+S'),M('Save a Copy…'),SEP,M('Export…'),M('Export as PDF…'),SEP,M('Print…','Ctrl+P'),SEP,M('Exit','Ctrl+Q')],
+  Edit:[M('Undo','Ctrl+Z'),M('Redo','Ctrl+Y'),SEP,M('Cut','Ctrl+X'),M('Copy','Ctrl+C'),M('Paste','Ctrl+V'),SEP,M('Find & Replace…','Ctrl+H'),SEP,M('Select All','Ctrl+A')],
+  View:[M('Normal'),M('Web'),SEP,M('Zoom…'),M('User Interface…'),SEP,M('Sidebar'),M('Status Bar')],
+  Insert:[M('Image…'),M('Chart…'),M('Table…','Ctrl+F12'),SEP,M('Header and Footer',' ',true),M('Page Break','Ctrl+Enter'),SEP,M('Special Character…'),M('Hyperlink…')],
+  Format:[M('Character…'),M('Paragraph…'),M('Bullets and Numbering…'),SEP,M('Page Style…'),SEP,M('Clear Direct Formatting','Ctrl+M')],
+  Styles:[M('Default Paragraph Style'),M('Heading 1'),M('Heading 2'),SEP,M('Manage Styles','F11')],
+  Table:[M('Insert Table…','Ctrl+F12'),M('Insert Row Above'),M('Insert Column Before'),SEP,M('Merge Cells'),M('Split Cells…')],
+  Form:[M('Design Mode'),M('Text Box'),M('Check Box'),M('Push Button')],
+  Sheet:[M('Insert Rows Above'),M('Insert Columns Before'),SEP,M('Delete Rows'),M('Named Ranges…')],
+  Data:[M('Sort…'),M('AutoFilter','Ctrl+Shift+L'),M('Standard Filter…'),SEP,M('Pivot Table…'),M('Group and Outline',' ',true)],
+  Slide:[M('New Slide','Ctrl+M'),M('Duplicate Slide'),SEP,M('Slide Properties…'),M('Slide Layout',' ',true)],
+  'Slide Show':[M('Start from First Slide','F5'),M('Start from Current Slide','Shift+F5'),SEP,M('Slide Show Settings…')],
+  Page:[M('Page Properties…'),M('Insert Page'),SEP,M('Rename Page…')],
+  Shape:[M('Rotate or Flip',' ',true),M('Arrange',' ',true),SEP,M('Group',' ',true)],
+  Tools:[M('Spelling…','F7'),M('Word Count…'),SEP,M('AutoCorrect Options…'),SEP,M('Macros',' ',true),SEP,M('Options…','Alt+F12')],
+  Window:[M('New Window'),M('Close Window','Ctrl+W')],
+  Help:[M('LibreOffice Help','F1'),SEP,M("What's This?"),SEP,M('About LibreOffice')]
+};
+
+const B=(icon,tip)=>({isBtn:true,icon,tip});
+const S={isSep:true};
+const CB=(text,w)=>({isCombo:true,text,w:w||120});
+const STD=[B('note_add','New'),B('folder_open','Open'),B('save','Save'),B('picture_as_pdf','Export as PDF'),B('local_printshop','Print'),S,B('undo','Undo'),B('redo','Redo'),S,B('content_cut','Cut'),B('content_copy','Copy'),B('content_paste','Paste'),B('format_paint','Clone Formatting'),S,B('image','Insert Image'),B('table','Insert Table'),B('insert_chart','Insert Chart'),S,B('search','Find & Replace'),B('spellcheck','Spelling')];
+const FMT={
+  writer:[CB('Default Paragraph Style',180),CB('Liberation Serif',140),CB('12',54),S,B('format_bold','Bold'),B('format_italic','Italic'),B('format_underlined','Underline'),B('format_strikethrough','Strikethrough'),S,B('format_color_text','Font Color'),B('format_ink_highlighter','Highlighting'),S,B('format_align_left','Left'),B('format_align_center','Center'),B('format_align_right','Right'),B('format_align_justify','Justified'),S,B('format_list_bulleted','Bulleted List'),B('format_list_numbered','Numbered List'),S,B('format_indent_increase','Increase Indent'),B('format_indent_decrease','Decrease Indent')],
+  calc:[CB('Liberation Sans',150),CB('10',54),S,B('format_bold','Bold'),B('format_italic','Italic'),B('format_underlined','Underline'),S,B('format_color_text','Font Color'),B('format_color_fill','Background Color'),S,B('format_align_left','Left'),B('format_align_center','Center'),B('format_align_right','Right'),S,B('attach_money','Currency'),B('percent','Percent'),B('decimal_increase','Add Decimal'),B('decimal_decrease','Delete Decimal'),S,B('cell_merge','Merge Cells')],
+  impress:[CB('Liberation Sans',150),CB('18',54),S,B('format_bold','Bold'),B('format_italic','Italic'),B('format_underlined','Underline'),S,B('format_color_text','Font Color'),S,B('format_align_left','Left'),B('format_align_center','Center'),B('format_align_right','Right'),S,B('crop_square','Rectangle'),B('circle','Ellipse'),B('horizontal_rule','Line'),B('text_fields','Text Box'),S,B('play_arrow','Start from First Slide')],
+  draw:[B('near_me','Select'),B('crop_square','Rectangle'),B('circle','Ellipse'),B('change_history','Basic Shapes'),B('horizontal_rule','Line'),B('polyline','Curve'),B('text_fields','Insert Text Box'),S,B('format_color_fill','Fill Color'),B('line_weight','Line Width'),B('palette','Line Color'),S,B('flip','Flip'),B('rotate_right','Rotate')],
+  base:[B('table','New Table'),B('quiz','New Query'),B('description','New Form'),B('summarize','New Report'),S,B('edit','Edit'),B('delete','Delete'),S,B('sort','Sort'),B('filter_alt','Filter')],
+  math:[B('functions','Elements'),S,B('zoom_in','Zoom In'),B('zoom_out','Zoom Out'),B('fit_screen','Show All'),S,B('refresh','Update')]
+};
+const APP={
+  writer:{icon:'article',label:'Writer',doc:'Q3 Board Report.odt'},
+  calc:{icon:'table_chart',label:'Calc',doc:'2026 Operating Budget.ods'},
+  impress:{icon:'co_present',label:'Impress',doc:'Product Launch.odp'},
+  draw:{icon:'brush',label:'Draw',doc:'Brand Guidelines.odg'},
+  base:{icon:'database',label:'Base',doc:'CRM.odb'},
+  math:{icon:'functions',label:'Math',doc:'Formula.odf'}
+};
+const MENUSET={
+  writer:['File','Edit','View','Insert','Format','Styles','Table','Form','Tools','Window','Help'],
+  calc:['File','Edit','View','Insert','Format','Sheet','Data','Tools','Window','Help'],
+  impress:['File','Edit','View','Insert','Format','Slide','Slide Show','Tools','Window','Help'],
+  draw:['File','Edit','View','Insert','Format','Page','Shape','Tools','Window','Help'],
+  base:['File','Edit','View','Insert','Tools','Window','Help'],
+  math:['File','Edit','View','Format','Tools','Window','Help']
+};
+const RIBBONTABS={
+  writer:['File','Home','Insert','Layout','References','Review','View'],
+  calc:['File','Home','Insert','Layout','Data','Review','View'],
+  impress:['File','Home','Insert','Slide Show','Review','View'],
+  draw:['File','Home','Insert','Page','Review','View'],
+  base:['File','Home','Insert','Tools','View'],
+  math:['File','Home','View']
+};
+
+const FEATURES_FALLBACK=[
+['New Document','shared','File','File ▸ New'],['Open','shared','File','File ▸ Open'],['Open Remote','shared','File','File ▸ Open Remote'],['Recent Documents','shared','File','File ▸ Recent Documents'],['Save','shared','File','Ctrl+S'],['Save As','shared','File','Ctrl+Shift+S'],['Save a Copy','shared','File','File ▸ Save a Copy'],['Save All','shared','File','File ▸ Save All'],['Reload','shared','File','File ▸ Reload'],['Versions','shared','File','File ▸ Versions'],['Export','shared','File','File ▸ Export'],['Export as PDF','shared','File','File ▸ Export As ▸ PDF'],['Export as EPUB','shared','File','File ▸ Export As ▸ EPUB'],['Print','shared','File','Ctrl+P'],['Print Preview','shared','File','File ▸ Print Preview'],['Send as Email','shared','File','File ▸ Send'],['Digital Signatures','shared','File','File ▸ Digital Signatures'],['Templates Manager','shared','File','File ▸ Templates'],['Document Properties','shared','Document','File ▸ Properties'],['Redaction','shared','Document','Tools ▸ Redact'],['Close','shared','File','Ctrl+W'],['Exit','shared','File','Ctrl+Q'],
+['Undo','shared','Edit','Ctrl+Z'],['Redo','shared','Edit','Ctrl+Y'],['Cut','shared','Edit','Ctrl+X'],['Copy','shared','Edit','Ctrl+C'],['Paste','shared','Edit','Ctrl+V'],['Paste Special','shared','Edit','Ctrl+Shift+V'],['Select All','shared','Edit','Ctrl+A'],['Find','shared','Edit','Ctrl+F'],['Find & Replace','shared','Edit','Ctrl+H'],['Track Changes','shared','Review','Edit ▸ Track Changes'],['Comments','shared','Review','Insert ▸ Comment'],
+['Sidebar','shared','View','View ▸ Sidebar'],['Status Bar','shared','View','View ▸ Status Bar'],['Rulers','shared','View','View ▸ Rulers'],['Full Screen','shared','View','Ctrl+Shift+J'],['Zoom','shared','View','View ▸ Zoom'],['User Interface','shared','View','View ▸ User Interface'],['Toolbars','shared','View','View ▸ Toolbars'],['Dark Mode','shared','View','Tools ▸ Options ▸ Application Colors'],
+['Insert Image','shared','Insert','Insert ▸ Image'],['Insert Chart','shared','Insert','Insert ▸ Chart'],['Insert Table','shared','Insert','Insert ▸ Table'],['Insert Special Character','shared','Insert','Insert ▸ Special Character'],['Insert Hyperlink','shared','Insert','Insert ▸ Hyperlink'],['Insert Text Box','shared','Insert','Insert ▸ Text Box'],['Insert Shape','shared','Insert','Insert ▸ Shape'],['Insert Fontwork','shared','Insert','Insert ▸ Fontwork'],['Insert OLE Object','shared','Insert','Insert ▸ OLE Object'],['Insert Header & Footer','shared','Insert','Insert ▸ Header and Footer'],['Insert Page Break','shared','Insert','Ctrl+Enter'],
+['Spelling','shared','Tools','F7'],['Automatic Spell Check','shared','Tools','Tools ▸ Automatic Spell Checking'],['Thesaurus','shared','Tools','Ctrl+F7'],['Word Count','shared','Tools','Tools ▸ Word Count'],['AutoCorrect','shared','Tools','Tools ▸ AutoCorrect Options'],['Language Settings','shared','Language','Tools ▸ Language'],['Macros','shared','Macros','Tools ▸ Macros'],['Basic IDE','shared','Macros','Tools ▸ Macros ▸ Edit Macros'],['Extension Manager','shared','Tools','Tools ▸ Extension Manager'],['Customize','shared','Tools','Tools ▸ Customize'],['Options','shared','Tools','Alt+F12'],['Accessibility Check','shared','Accessibility','Tools ▸ Accessibility Check'],['AutoRecovery','shared','Tools','Tools ▸ Options ▸ Load/Save'],['Safe Mode','shared','Tools','Help ▸ Restart in Safe Mode'],['Help','shared','Tools','F1'],['About','shared','Tools','Help ▸ About'],
+['Paragraph Styles','writer','Styles','F11'],['Character Styles','writer','Styles','Styles ▸ Manage Styles'],['Clone Formatting','writer','Format','Standard ▸ Clone'],['Clear Direct Formatting','writer','Format','Ctrl+M'],['Bold','writer','Format','Ctrl+B'],['Italic','writer','Format','Ctrl+I'],['Underline','writer','Format','Ctrl+U'],['Strikethrough','writer','Format','Format ▸ Text'],['Superscript','writer','Format','Ctrl+Shift+P'],['Subscript','writer','Format','Ctrl+Shift+B'],['Font Color','writer','Format','Format ▸ Character'],['Highlighting','writer','Format','Formatting ▸ Highlight'],['Align Left','writer','Format','Ctrl+L'],['Align Center','writer','Format','Ctrl+E'],['Align Right','writer','Format','Ctrl+R'],['Justified','writer','Format','Ctrl+J'],['Line Spacing','writer','Format','Format ▸ Paragraph'],['Bullets & Numbering','writer','Format','Format ▸ Bullets and Numbering'],['Increase Indent','writer','Format','Formatting ▸ Indent'],
+['Page Style','writer','Format','Format ▸ Page Style'],['Columns','writer','Format','Format ▸ Columns'],['Sections','writer','Insert','Insert ▸ Section'],['Watermark','writer','Format','Format ▸ Watermark'],['Table of Contents','writer','Insert','Insert ▸ Table of Contents'],['Index','writer','Insert','Insert ▸ Index'],['Bibliography','writer','Insert','Insert ▸ Bibliography'],['Footnote / Endnote','writer','Insert','Insert ▸ Footnote'],['Cross-reference','writer','Insert','Insert ▸ Cross-reference'],['Bookmark','writer','Insert','Insert ▸ Bookmark'],['Caption','writer','Insert','Insert ▸ Caption'],['Fields','writer','Insert','Insert ▸ Field'],['Frame','writer','Insert','Insert ▸ Frame'],['Mail Merge','writer','Tools','Tools ▸ Mail Merge Wizard'],['Envelope','writer','Insert','Insert ▸ Envelope'],['Labels','writer','File','File ▸ New ▸ Labels'],['Compare Document','writer','Review','Edit ▸ Track Changes ▸ Compare'],['Protect Changes','writer','Review','Edit ▸ Track Changes ▸ Protect'],['Navigator','writer','View','F5'],['AutoText','writer','Tools','Ctrl+F3'],['Formatting Marks','writer','View','Ctrl+F10'],['Web View','writer','View','View ▸ Web'],['Table Properties','writer','Table','Table ▸ Properties'],
+['Number Format','calc','Format','Ctrl+1'],['Currency Format','calc','Format','Format ▸ Cells'],['Percent Format','calc','Format','Ctrl+Shift+5'],['Conditional Formatting','calc','Format','Format ▸ Conditional'],['Merge Cells','calc','Format','Format ▸ Merge Cells'],['Wrap Text','calc','Format','Format ▸ Cells ▸ Alignment'],['Insert Rows','calc','Sheet','Sheet ▸ Insert Rows'],['Insert Columns','calc','Sheet','Sheet ▸ Insert Columns'],['Freeze Rows & Columns','calc','View','View ▸ Freeze'],['Split Window','calc','View','View ▸ Split Window'],['Function Wizard','calc','Formula','Ctrl+F2'],['AutoSum','calc','Formula','Formula ▸ Sum'],['Named Ranges','calc','Formula','Sheet ▸ Named Ranges'],['Array Formula','calc','Formula','Ctrl+Shift+Enter'],['Sort','calc','Data','Data ▸ Sort'],['AutoFilter','calc','Data','Ctrl+Shift+L'],['Standard Filter','calc','Data','Data ▸ More Filters'],['Subtotals','calc','Data','Data ▸ Subtotals'],['Consolidate','calc','Data','Data ▸ Consolidate'],['Validity','calc','Data','Data ▸ Validity'],['Pivot Table','calc','Data','Data ▸ Pivot Table'],['Group & Outline','calc','Data','Data ▸ Group and Outline'],['Goal Seek','calc','Data','Tools ▸ Goal Seek'],['Solver','calc','Data','Tools ▸ Solver'],['Multiple Operations','calc','Data','Data ▸ Multiple Operations'],['Scenarios','calc','Data','Tools ▸ Scenarios'],['Detective','calc','Formula','Tools ▸ Detective'],['Statistics','calc','Data','Data ▸ Statistics'],['Text to Columns','calc','Data','Data ▸ Text to Columns'],['Fill Series','calc','Sheet','Sheet ▸ Fill Cells'],['Sparklines','calc','Insert','Insert ▸ Sparkline'],['Sheet Management','calc','Sheet','Sheet ▸ Insert/Move'],['Print Ranges','calc','Format','Format ▸ Print Ranges'],['Protect Sheet','calc','Tools','Tools ▸ Protect Sheet'],
+['New Slide','impress','Slides','Ctrl+M'],['Duplicate Slide','impress','Slides','Slide ▸ Duplicate'],['Slide Layout','impress','Slides','Slide ▸ Layout'],['Master Slide','impress','Slides','View ▸ Master Slide'],['Outline View','impress','View','View ▸ Outline'],['Notes View','impress','View','View ▸ Notes'],['Slide Sorter','impress','View','View ▸ Slide Sorter'],['Handout','impress','View','View ▸ Handout'],['Custom Animation','impress','Show','Slide ▸ Animation'],['Slide Transition','impress','Show','Slide ▸ Transition'],['Interaction','impress','Show','Slide Show ▸ Interaction'],['Start Slide Show','impress','Show','F5'],['Slide Show Settings','impress','Show','Slide Show ▸ Settings'],['Custom Slide Show','impress','Show','Slide Show ▸ Custom'],['Rehearse Timings','impress','Show','Slide Show ▸ Rehearse'],['Presenter Console','impress','Show','Slide Show ▸ Presenter Console'],['Insert Media','impress','Insert','Insert ▸ Audio or Video'],['Header & Footer','impress','Insert','Insert ▸ Header and Footer'],
+['Rectangle','draw','Draw','Toolbar ▸ Rectangle'],['Ellipse','draw','Draw','Toolbar ▸ Ellipse'],['Polygon','draw','Draw','Toolbar ▸ Polygon'],['Curve','draw','Draw','Toolbar ▸ Curve'],['Connectors','draw','Draw','Toolbar ▸ Connectors'],['Callouts','draw','Draw','Toolbar ▸ Callouts'],['Stars & Banners','draw','Draw','Toolbar ▸ Stars'],['Lines & Arrows','draw','Draw','Toolbar ▸ Lines'],['Area Fill','draw','Objects','Format ▸ Area'],['Line Style','draw','Objects','Format ▸ Line'],['Shadow','draw','Objects','Format ▸ Area ▸ Shadow'],['Transparency','draw','Objects','Format ▸ Area ▸ Transparency'],['Align Objects','draw','Objects','Format ▸ Align'],['Distribute','draw','Objects','Shape ▸ Distribute'],['Arrange','draw','Objects','Shape ▸ Arrange'],['Group','draw','Objects','Format ▸ Group'],['Combine Shapes','draw','Objects','Shape ▸ Combine'],['Rotate & Flip','draw','Objects','Format ▸ Rotate or Flip'],['Position & Size','draw','Objects','F4'],['Layers','draw','View','Insert ▸ Layer'],['Convert to 3D','draw','Objects','Format ▸ Convert'],['Cross-fade','draw','Objects','Shape ▸ Cross-fading'],['Snap Lines','draw','View','Insert ▸ Snap Line'],['Crop Image','draw','Objects','Format ▸ Crop'],
+['Table Design','base','Database','Tables ▸ Create in Design'],['Table Wizard','base','Database','Tables ▸ Use Wizard'],['Relationships','base','Database','Tools ▸ Relationships'],['Primary Key','base','Database','Table Design ▸ Primary Key'],['Indexes','base','Database','Table Design ▸ Indexes'],['Query Design','base','Database','Queries ▸ Create in Design'],['SQL View','base','Database','Queries ▸ Create in SQL'],['Query Wizard','base','Database','Queries ▸ Use Wizard'],['Form Wizard','base','Database','Forms ▸ Use Wizard'],['Form Design','base','Database','Forms ▸ Create in Design'],['Report Wizard','base','Database','Reports ▸ Use Wizard'],['Report Builder','base','Database','Reports ▸ Report Builder'],['Register Database','base','Database','Tools ▸ Options ▸ Databases'],['Connect MySQL / JDBC','base','Database','File ▸ New ▸ Database'],['Database Macros','base','Macros','Tools ▸ Macros'],
+['Formula Editor','math','Formula','Insert ▸ Object ▸ Formula'],['Elements Panel','math','Formula','View ▸ Elements'],['Markup Editor','math','Formula','Bottom command window'],['Symbol Catalog','math','Formula','Tools ▸ Catalog'],['Import MathML','math','Formula','File ▸ Open ▸ MathML'],['Matrices','math','Formula','Elements ▸ Formats'],['Fractions','math','Formula','Elements ▸ Unary/Binary'],['Integrals & Sums','math','Formula','Elements ▸ Operators'],['Greek Symbols','math','Formula','Catalog ▸ Greek'],['Brackets','math','Formula','Elements ▸ Brackets'],['Attributes','math','Formula','Elements ▸ Attributes'],['Alignment','math','Formula','Format ▸ Alignment'],['Fonts & Spacing','math','Formula','Format ▸ Fonts'],
+['Column Chart','chart','Chart','Insert ▸ Chart ▸ Column'],['Bar Chart','chart','Chart','Chart ▸ Bar'],['Pie Chart','chart','Chart','Chart ▸ Pie'],['Area Chart','chart','Chart','Chart ▸ Area'],['Line Chart','chart','Chart','Chart ▸ Line'],['XY Scatter','chart','Chart','Chart ▸ XY (Scatter)'],['Bubble Chart','chart','Chart','Chart ▸ Bubble'],['Net Chart','chart','Chart','Chart ▸ Net'],['Stock Chart','chart','Chart','Chart ▸ Stock'],['Data Table','chart','Chart','Insert ▸ Data Table'],['Titles & Legend','chart','Chart','Insert ▸ Titles'],['Axes & Grids','chart','Chart','Insert ▸ Axes'],['Trend Lines','chart','Chart','Insert ▸ Trend Line'],['Error Bars','chart','Chart','Insert ▸ Error Bars'],['3D View','chart','Chart','Format ▸ 3D View'],['Data Labels','chart','Chart','Insert ▸ Data Labels']
+];
+
+const DOCS=(()=>{const b2=[['h','Executive summary'],['p','Revenue grew 18% quarter over quarter, driven by strong adoption across the enterprise segment and disciplined expansion of the direct sales team.']];const b3=[...b2,['p','The remainder of this report details performance by business unit and outlines three strategic initiatives proposed for the coming fiscal year.']];const b4=[...b3,['h','Highlights'],['p','Two flagship accounts renewed early at expanded scope, and the partner channel contributed a growing share of qualified pipeline.']];const b5=[...b4,['p','Net retention reached a record 121%.']];return [
+  {title:'Untitled 1',sub:'Text Document — draft',blocks:[]},
+  {title:'Untitled 1',sub:'Text Document — draft',blocks:[['h','Executive summary'],['p','Revenue grew this quarter across the enterprise segment.']]},
+  {title:'Q3 Board Report',sub:'Prepared for the Board of Directors · Confidential',blocks:b2},
+  {title:'Q3 Board Report',sub:'Prepared for the Board of Directors · Confidential',blocks:b3},
+  {title:'Q3 Board Report',sub:'Prepared for the Board of Directors · Confidential',blocks:b4},
+  {title:'Q3 Board Report',sub:'Prepared for the Board of Directors · Confidential',blocks:b5}
+];})();
+
+const HISTORY=[
+ {id:0,time:'Now',group:'Today',action:'Working copy',icon:'edit',hash:'e9c4f2a',author:'Alex Rivera',added:0,removed:0,file:'Q3 Board Report.odt',docIx:5,current:true},
+ {id:1,time:'2:41 PM',group:'Today',action:'Bold applied to “record 121%”',icon:'format_bold',hash:'7b1d0c8',author:'Alex Rivera',added:1,removed:1,file:'Q3 Board Report.odt',docIx:5},
+ {id:2,time:'2:39 PM',group:'Today',action:'Typed “Net retention reached a record 121%.”',icon:'keyboard',hash:'3a9f5e1',author:'Alex Rivera',added:11,removed:0,file:'Q3 Board Report.odt',docIx:5},
+ {id:3,time:'2:32 PM',group:'Today',action:'Inserted “Highlights” section',icon:'title',hash:'c22a7b4',author:'Alex Rivera',added:34,removed:0,file:'Q3 Board Report.odt',docIx:4},
+ {id:4,time:'2:20 PM',group:'Today',action:'Paragraph aligned justified',icon:'format_align_justify',hash:'0d84f60',author:'Alex Rivera',added:0,removed:0,file:'Q3 Board Report.odt',docIx:3},
+ {id:5,time:'2:02 PM',group:'Today',action:'Recalculated “2026 Operating Budget.ods”',icon:'table_chart',hash:'55e1aa9',author:'Alex Rivera',added:6,removed:6,file:'2026 Operating Budget.ods'},
+ {id:6,time:'1:58 PM',group:'Today',action:'Typed second paragraph',icon:'keyboard',hash:'9f3c2d7',author:'Alex Rivera',added:42,removed:0,file:'Q3 Board Report.odt',docIx:3},
+ {id:7,time:'1:44 PM',group:'Today',action:'Title changed to “Q3 Board Report”',icon:'edit',hash:'2b7e884',author:'Alex Rivera',added:3,removed:1,file:'Q3 Board Report.odt',docIx:2},
+ {id:8,time:'11:20 AM',group:'Today',action:'Applied Heading 1 style',icon:'format_size',hash:'a1c9f30',author:'Alex Rivera',added:0,removed:0,file:'Q3 Board Report.odt',docIx:1},
+ {id:9,time:'Yesterday 4:12 PM',group:'Yesterday',action:'Added “Executive summary”',icon:'title',hash:'6e0b512',author:'Alex Rivera',added:12,removed:0,file:'Q3 Board Report.odt',docIx:1},
+ {id:10,time:'Yesterday 3:50 PM',group:'Yesterday',action:'Updated slide 3 layout in “Product Launch.odp”',icon:'co_present',hash:'44d3928',author:'Priya Shah',added:0,removed:0,file:'Product Launch.odp'},
+ {id:11,time:'Yesterday 3:50 PM',group:'Yesterday',action:'Document created',icon:'note_add',hash:'0000001',author:'Alex Rivera',added:0,removed:0,file:'Q3 Board Report.odt',docIx:0}
+];
+
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state={
+      screen:props.screen||'start',
+      theme:props.theme||'light',
+      density:props.density||'comfortable',
+      chrome:props.chrome||'classic',
+      scView:'recent', menuOpen:null,
+      gCheck:true, gRadio:'balanced', gSwitch:true, gTab:1, gSlider:64,
+      gChip:{design:true,native:false,a11y:true},
+      calcSel:'B2', sheet:0, slide:1, layout:1, dialog:'options', baseSel:0, printRange:'all',
+      featCat:'all', featQuery:'', featSel:'Find & Replace',
+      toast:null, fmt:{bold:true,italic:false,underline:false,strike:false,align:'left'},
+      histSel:0, histScope:'doc'
+    };
+  }
+  componentDidMount(){
+    fetch('data/features.json').then(r=>r.json()).then(d=>{ if(Array.isArray(d)&&d.length) this.setState({features:d}); }).catch(()=>{});
+    this._onClick=(e)=>{ const b=e.target.closest('button'); if(!b||b.closest('[data-silent]')) return; const label=(b.getAttribute('title')||b.textContent||'').trim(); if(label) this.toast(label); };
+    document.addEventListener('click', this._onClick, true);
+  }
+  componentWillUnmount(){ if(this._onClick) document.removeEventListener('click', this._onClick, true); }
+  toast(msg){ const id=(this._tk||0)+1; this._tk=id; this.setState({toast:msg}); setTimeout(()=>{ if(this._tk===id) this.setState({toast:null}); }, 1900); }
+  set(k,v){ return ()=>this.setState({[k]:v, menuOpen:null}); }
+
+  renderVals(){
+    const st=this.state, P=PAL[st.theme];
+    const D = st.density==='compact'
+      ? {ctrl:34,row:26,tb:38,menu:30,item:30,fs:13,lh:1.35}
+      : {ctrl:40,row:32,tb:48,menu:38,item:40,fs:14,lh:1.45};
+    const bw = st.theme==='hc' ? '2px' : '1px';
+    const rootVars = {
+      '--p':P.p,'--on-p':P.onP,'--pc':P.pc,'--on-pc':P.onPc,'--p-hover':P.pHover,'--p-pressed':P.pPressed,'--pa-hover':P.paHover,'--pa-pressed':P.paPressed,
+      '--surface':P.surface,'--sc':P.sc,'--scl':P.scl,'--on-s':P.onS,'--on-sv':P.onSv,'--outline':P.outline,'--outline-v':P.outlineV,'--disabled':P.disabled,'--inv-s':P.invS,'--on-inv-s':P.onInvS,'--warn':P.warn,'--on-warn':P.onWarn,'--err':P.err,'--on-err':P.onErr,'--err-base':P.errBase,'--visited':P.visited,'--desk':P.desk,'--scrim':P.scrim,'--bw':bw,
+      '--r-check':'3px','--r-ind':'4px','--r-focus':'6px','--r-sm':'8px','--r-ctrl':'10px','--r-cont':'12px','--r-tb':'18px','--r-pill':'20px',
+      '--ctrl':D.ctrl+'px','--row':D.row+'px','--tb':D.tb+'px','--menu':D.menu+'px','--item':D.item+'px','--fs':D.fs+'px',
+      fontFamily:"'Roboto','Segoe UI Variable Text','Segoe UI',system-ui,sans-serif",color:'var(--on-s)',
+      minHeight:'100vh',width:'100%',background:'var(--desk)',display:'flex',flexDirection:'column',alignItems:'center',
+      fontSize:'var(--fs)',lineHeight:String(D.lh),paddingBottom:'40px'
+    };
+
+    const scr=st.screen;
+    const isApp=['writer','calc','impress','draw','base','math'].includes(scr);
+    const meta=APP[scr]||APP.writer;
+
+    const segCtl=(active)=>`appearance:none;border:none;cursor:pointer;padding:6px 13px;border-radius:16px;font:600 13px/1 'Roboto',sans-serif;white-space:nowrap;transition:background .12s,color .12s;background:${active?'var(--p)':'transparent'};color:${active?'var(--on-p)':'rgba(255,255,255,.72)'}`;
+    const mkSeg=(arr,key)=>arr.map(o=>({label:o[1],onClick:this.set(key,o[0]),style:segCtl(st[key]===o[0])}));
+
+    const screens=mkSeg([['start','Start'],['writer','Writer'],['calc','Calc'],['impress','Impress'],['draw','Draw'],['base','Base'],['math','Math'],['code','Features'],['history','History'],['gallery','Components'],['dialogs','Dialogs']],'screen');
+    const themes=mkSeg([['light','Light'],['dark','Dark'],['hc','High contrast']],'theme');
+    const densities=mkSeg([['compact','Compact'],['comfortable','Comfortable']],'density');
+    const chromes=mkSeg([['classic','Classic'],['ribbon','Ribbon']],'chrome');
+
+    // menus
+    const menuStyle=(open)=>`appearance:none;border:none;background:${open?'var(--pc)':'transparent'};color:${open?'var(--on-pc)':'var(--on-s)'};cursor:pointer;padding:5px 11px;border-radius:8px;font:400 13px/1 'Roboto',sans-serif`;
+    const menus=(MENUSET[scr]||[]).map(l=>({label:l,open:st.menuOpen===l,items:(MENUS[l]||[M('(commands)')]).map(it=>it.sep?it:{...it,onClick:()=>{this.toast(it.l);this.setState({menuOpen:null});}}),style:menuStyle(st.menuOpen===l),onClick:()=>this.setState({menuOpen:st.menuOpen===l?null:l})}));
+    const FTGL={format_bold:'bold',format_italic:'italic',format_underlined:'underline',format_strikethrough:'strike'};
+    const FALIGN={format_align_left:'left',format_align_center:'center',format_align_right:'right',format_align_justify:'justify'};
+    const fmtBase='width:34px;height:34px;border:none;border-radius:var(--r-sm);cursor:pointer;display:grid;place-items:center;flex:0 0 auto';
+    const fmtToolbar=(FMT[scr]||[]).map(it=>{
+      if(it.isBtn){ const tg=FTGL[it.icon], al=FALIGN[it.icon]; let active=false,onClick=()=>{};
+        if(tg){active=!!(st.fmt&&st.fmt[tg]); onClick=()=>this.setState({fmt:{...st.fmt,[tg]:!(st.fmt&&st.fmt[tg])}});}
+        else if(al){active=!!(st.fmt&&st.fmt.align===al); onClick=()=>this.setState({fmt:{...st.fmt,align:al}});}
+        return {...it,active,onClick,style:`${fmtBase};background:${active?'var(--pc)':'transparent'};color:${active?'var(--on-pc)':'var(--on-sv)'}`}; }
+      if(it.isCombo){ return {...it,onClick:()=>this.toast(it.text)}; }
+      return it;
+    });
+
+    // ribbon
+    const tabStyle=(a)=>`appearance:none;border:none;cursor:pointer;padding:6px 16px;border-radius:16px 16px 0 0;font:${a?'600':'400'} 13px/1 'Roboto',sans-serif;background:${a?'var(--surface)':'transparent'};color:${a?'var(--p)':'var(--on-sv)'};border-bottom:${a?'2px solid var(--p)':'2px solid transparent'}`;
+    const ribbonTabs=(RIBBONTABS[scr]||[]).map(l=>({label:l,style:tabStyle((st.nbTab||'Home')===l),onClick:()=>this.setState({nbTab:l})}));
+    const ribbonGroups=[
+      {name:'Clipboard',items:[{big:true,icon:'content_paste',label:'Paste',tip:'Paste'},{small:true,icon:'content_cut',tip:'Cut'},{small:true,icon:'content_copy',tip:'Copy'},{small:true,icon:'format_paint',tip:'Clone'}]},
+      {name:'Font',items:[{chip:true,label:'Liberation Serif  12'},{small:true,icon:'format_bold',tip:'Bold'},{small:true,icon:'format_italic',tip:'Italic'},{small:true,icon:'format_underlined',tip:'Underline'},{small:true,icon:'format_color_text',tip:'Color'}]},
+      {name:'Paragraph',items:[{small:true,icon:'format_list_bulleted',tip:'Bullets'},{small:true,icon:'format_list_numbered',tip:'Numbered'},{small:true,icon:'format_align_left',tip:'Left'},{small:true,icon:'format_align_center',tip:'Center'},{small:true,icon:'format_align_right',tip:'Right'}]},
+      {name:'Styles',items:[{chip:true,label:'Default'},{chip:true,label:'Heading 1'},{chip:true,label:'Heading 2'}]}
+    ];
+
+    // start center
+    const scNavStyle=(a)=>`display:flex;align-items:center;gap:14px;height:40px;padding:0 12px;border:none;border-radius:var(--r-pill);cursor:pointer;font:500 13px/1 'Roboto',sans-serif;background:${a?'var(--pc)':'transparent'};color:${a?'var(--on-pc)':'var(--on-s)'}`;
+    const scNav=[['recent','Recent Documents','history'],['templates','Templates','grid_view']].map(o=>({label:o[1],icon:o[2],onClick:this.set('scView',o[0]),style:scNavStyle(st.scView===o[0])}));
+    const createApps=[['writer','Writer Document','article'],['calc','Calc Spreadsheet','table_chart'],['impress','Impress Presentation','co_present'],['draw','Draw Drawing','brush'],['math','Math Formula','functions'],['base','Base Database','database']].map(o=>({label:o[1],icon:o[2],onClick:this.set('screen',o[0])}));
+    const RECENT=[['Q3 Board Report.odt','writer','2 hours ago'],['2026 Operating Budget.ods','calc','Yesterday'],['Product Launch.odp','impress','Yesterday'],['Brand Guidelines.odg','draw','2 days ago'],['Research Notes.odt','writer','Last week'],['Sales Pipeline.ods','calc','Last week'],['Onboarding Deck.odp','impress','Last week'],['Symbols.odf','math','2 weeks ago']];
+    const TEMPL=[['Modern Résumé','writer'],['Invoice','calc'],['Pitch Deck','impress'],['Newsletter','writer'],['Budget Planner','calc'],['Event Poster','draw'],['Meeting Minutes','writer'],['Quarterly Report','calc']];
+    const scCards = st.scView==='recent'
+      ? RECENT.map(r=>({name:r[0],icon:APP[r[1]].icon,meta:APP[r[1]].label+' · '+r[2]}))
+      : TEMPL.map(t=>({name:t[0],icon:APP[t[1]].icon,meta:APP[t[1]].label+' template'}));
+    const scFilterLabel = st.scView==='recent' ? 'All Documents' : 'All Templates';
+
+    // writer sidebar
+    const charBtns=[B('format_bold','Bold'),B('format_italic','Italic'),B('format_underlined','Underline'),B('strikethrough_s','Strikethrough'),B('format_color_text','Font Color'),B('format_ink_highlighter','Highlight')];
+    const paraBtns=[B('format_align_left','Left'),B('format_align_center','Center'),B('format_align_right','Right'),B('format_align_justify','Justified'),B('format_list_bulleted','Bulleted'),B('format_list_numbered','Numbered')];
+    const railStyle=(a)=>`width:38px;height:38px;border:none;border-radius:var(--r-sm);cursor:pointer;display:grid;place-items:center;background:${a?'var(--pc)':'transparent'};color:${a?'var(--on-pc)':'var(--on-sv)'}`;
+    const sidebarRail=[['edit_note','Properties',1],['palette','Styles',0],['image','Gallery',0],['explore','Navigator',0],['functions','Functions',0]].map((o,i)=>({icon:o[0],tip:o[1],style:railStyle(i===0)}));
+
+    // calc grid
+    const COLS=['A','B','C','D','E','F','G','H'];
+    const CDATA={A1:'Category',B1:'Q1',C1:'Q2',D1:'Q3',E1:'Q4',F1:'Total',
+      A2:'Revenue',B2:'3,120',C2:'3,540',D2:'4,010',E2:'4,740',F2:'15,410',
+      A3:'Cost of sales',B3:'1,180',C3:'1,300',D3:'1,410',E3:'1,610',F3:'5,500',
+      A4:'Gross profit',B4:'1,940',C4:'2,240',D4:'2,600',E4:'3,130',F4:'9,910',
+      A5:'Marketing',B5:'640',C5:'700',D5:'760',E5:'880',F5:'2,980',
+      A6:'R&D',B6:'520',C6:'560',D6:'600',E6:'640',F6:'2,320',
+      A7:'G&A',B7:'410',C7:'430',D7:'450',E7:'470',F7:'1,760',
+      A8:'Operating income',B8:'370',C8:'550',D8:'790',E8:'1,140',F8:'2,850'};
+    const selCol=st.calcSel[0], selRow=st.calcSel.slice(1);
+    const colHeadStyle=(c)=>`width:${st.density==='compact'?76:92}px;height:26px;flex:0 0 auto;display:grid;place-items:center;font:500 12px/1 'Roboto',sans-serif;border-right:var(--bw) solid var(--outline-v);border-bottom:var(--bw) solid var(--outline-v);background:${c===selCol?'var(--pc)':'var(--sc)'};color:${c===selCol?'var(--on-pc)':'var(--on-sv)'}`;
+    const calcCols=COLS.map(c=>({label:c,style:colHeadStyle(c)}));
+    const rowHeadStyle=(r)=>`width:44px;flex:0 0 auto;display:grid;place-items:center;font:500 12px/1 'Roboto',sans-serif;border-right:var(--bw) solid var(--outline-v);border-bottom:var(--bw) solid var(--outline-v);background:${String(r)===selRow?'var(--pc)':'var(--sc)'};color:${String(r)===selRow?'var(--on-pc)':'var(--on-sv)'};height:var(--row)`;
+    const cellStyle=(id,val)=>{const sel=id===st.calcSel;const numeric=/^[0-9(]/.test(val)&&val!=='';return `width:${st.density==='compact'?76:92}px;flex:0 0 auto;display:flex;align-items:center;justify-content:${numeric?'flex-end':'flex-start'};padding:0 8px;font:400 13px/1 'Roboto',sans-serif;color:var(--on-s);height:var(--row);border-right:var(--bw) solid var(--outline-v);border-bottom:var(--bw) solid var(--outline-v);cursor:cell;overflow:hidden;white-space:nowrap;box-shadow:${sel?'inset 0 0 0 2px var(--p)':'none'};background:${sel?'var(--surface)':'transparent'}`;};
+    const calcRows=[];
+    for(let r=1;r<=14;r++){
+      const cells=COLS.map(c=>{const id=c+r,val=CDATA[id]||'';return {val,onClick:this.set('calcSel',id),style:cellStyle(id,val)};});
+      calcRows.push({num:r,headStyle:rowHeadStyle(r),cells});
+    }
+    const sheetStyle=(a)=>`appearance:none;border:none;cursor:pointer;height:26px;padding:0 14px;border-radius:8px 8px 0 0;font:${a?'600':'400'} 12px/1 'Roboto',sans-serif;background:${a?'var(--surface)':'transparent'};color:${a?'var(--p)':'var(--on-sv)'};border:${a?'var(--bw) solid var(--outline-v)':'var(--bw) solid transparent'};border-bottom:none`;
+    const sheetTabs=['Income','Balance','Cash flow'].map((l,i)=>({label:l,style:sheetStyle(i===st.sheet),onClick:this.set('sheet',i)}));
+    const calcFormula = CDATA[st.calcSel] ? (/^[0-9(]/.test(CDATA[st.calcSel])? '='+CDATA[st.calcSel].replace(/,/g,'') : CDATA[st.calcSel]) : '';
+
+    // impress
+    const STITLES=['Product Launch','Market Overview','Our Solution','Traction','Roadmap','Team','Pricing','Thank You'];
+    const slideStyle=(a)=>`width:120px;height:68px;background:var(--surface);border:${a?'2px solid var(--p)':'var(--bw) solid var(--outline-v)'};border-radius:5px;overflow:hidden;flex:0 0 auto;box-shadow:${a?'0 2px 10px rgba(0,0,0,.14)':'none'}`;
+    const slides=STITLES.map((t,i)=>({num:i+1,title:t,style:slideStyle(i+1===st.slide),onClick:this.set('slide',i+1)}));
+    const slideTitle=STITLES[st.slide-1];
+    const layoutStyle=(a)=>`aspect-ratio:4/3;display:grid;place-items:center;border:${a?'2px solid var(--p)':'var(--bw) solid var(--outline-v)'};border-radius:var(--r-sm);cursor:pointer;background:${a?'var(--pc)':'var(--surface)'}`;
+    const layouts=['title','subject','table_rows','view_agenda','grid_view','image'].map((ic,i)=>({icon:ic,style:layoutStyle(i===st.layout)}));
+
+    // draw
+    const drawTools=[['near_me','Select',1],['open_with','Move',0],['crop_square','Rectangle',0],['circle','Ellipse',0],['horizontal_rule','Line',0],['text_fields','Text',0],['polyline','Curve',0]].map((o,i)=>({icon:o[0],tip:o[1],style:railStyle(i===0)}));
+
+    // base
+    const baseNavStyle=(a)=>`display:flex;align-items:center;gap:12px;width:100%;height:40px;padding:0 12px;border:none;border-radius:var(--r-cont);cursor:pointer;font:500 13px/1 'Roboto',sans-serif;background:${a?'var(--pc)':'transparent'};color:${a?'var(--on-pc)':'var(--on-s)'}`;
+    const baseNav=[['Tables','table'],['Queries','quiz'],['Forms','description'],['Reports','summarize']].map((o,i)=>({label:o[0],icon:o[1],style:baseNavStyle(i===st.baseSel),onClick:this.set('baseSel',i)}));
+    const baseTables=['Customers','Orders','Products','Invoices'];
+    const BROWS=[['Acme Corp','Dana Lee','Seattle'],['Globex','Priya Shah','Austin'],['Initech','Marco Diaz','Denver'],['Umbra Co','Yuki Tan','Boston']];
+    const baseRows=BROWS.map((r,i)=>({a:r[0],b:r[1],c:r[2],style:`display:flex;border-bottom:${i<BROWS.length-1?'var(--bw) solid var(--outline-v)':'none'};background:${i%2?'var(--scl)':'transparent'}`}));
+
+    const mathSyms=['+','−','×','÷','±','√','∑','∫','≠','≤','≥','∞','π','θ','∂','α','β','Δ','∈','→'];
+
+    // gallery
+    const checkBox=`display:grid;place-items:center;width:20px;height:20px;border-radius:var(--r-check);flex:0 0 auto;background:${st.gCheck?'var(--p)':'transparent'};border:2px solid ${st.gCheck?'var(--p)':'var(--on-sv)'}`;
+    const radios=[['balanced','Balanced'],['dense','Dense'],['spacious','Spacious']].map(o=>{const a=st.gRadio===o[0];return {label:o[1],onClick:this.set('gRadio',o[0]),dotOp:a?1:0,ring:`display:grid;place-items:center;width:20px;height:20px;border-radius:50%;flex:0 0 auto;background:${a?'var(--p)':'transparent'};border:2px solid ${a?'var(--p)':'var(--on-sv)'}`};});
+    const switchTrack=`display:inline-flex;align-items:center;width:52px;height:32px;border-radius:16px;flex:0 0 auto;padding:2px;transition:background .15s;background:${st.gSwitch?'var(--p)':'var(--outline-v)'};justify-content:${st.gSwitch?'flex-end':'flex-start'};border:2px solid ${st.gSwitch?'var(--p)':'var(--outline)'}`;
+    const switchThumb=`width:24px;height:24px;border-radius:50%;background:${st.gSwitch?'var(--on-p)':'var(--outline)'};box-shadow:0 1px 3px rgba(0,0,0,.3)`;
+    const chipDefs=[['design','Design'],['native','Native'],['a11y','Accessible']];
+    const chips=chipDefs.map(o=>{const a=st.gChip[o[0]];return {label:o[1],iconOp:a?1:0,onClick:()=>this.setState({gChip:{...st.gChip,[o[0]]:!st.gChip[o[0]]}}),style:`display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 ${a?'14px':'16px'} 0 ${a?'10px':'16px'};border-radius:var(--r-sm);cursor:pointer;font:500 13px/1 'Roboto',sans-serif;border:var(--bw) solid ${a?'var(--p)':'var(--outline)'};background:${a?'var(--pc)':'transparent'};color:${a?'var(--on-pc)':'var(--on-s)'}`};});
+    const GTABS=['Overview','Tokens','States'];
+    const galTabs=GTABS.map((l,i)=>{const a=i===st.gTab;return {label:l,onClick:this.set('gTab',i),style:`appearance:none;border:none;cursor:pointer;padding:7px 16px;border-radius:16px;font:600 13px/1 'Roboto',sans-serif;background:${a?'var(--p)':'transparent'};color:${a?'var(--on-p)':'var(--on-sv)'}`};});
+    const galTabBody=['A single interaction system across every surface of the suite.','23 color roles, 8 shape roles, 15 metric roles and 3 type roles per scheme.','Hover, focus, pressed, selected, disabled and error states are all defined.'][st.gTab];
+    const SW=[['primary',P.p,P.onP],['primary-container',P.pc,P.onPc],['surface',P.surface,P.onS],['surface-container',P.sc,P.onS],['on-surface-variant',P.onSv,P.surface],['outline',P.outline,P.surface],['error-container',P.err,P.onErr],['warning-container',P.warn,P.onWarn],['inverse-surface',P.invS,P.onInvS],['visited-link',P.visited,'#ffffff']];
+    const swatches=SW.map(s=>({name:s[0],hex:s[1].toUpperCase(),style:`display:flex;flex-direction:column;justify-content:flex-end;gap:2px;height:58px;padding:8px 10px;border-radius:var(--r-sm);border:var(--bw) solid var(--outline-v);background:${s[1]};color:${s[2]}`}));
+    const listItems=[['description','Text Document',true],['grid_on','Spreadsheet',false],['slideshow','Presentation',false]].map((o,i)=>({icon:o[0],label:o[1],check:o[2],style:`display:flex;align-items:center;gap:12px;height:44px;padding:0 14px;cursor:pointer;background:${o[2]?'var(--pc)':'transparent'};border-bottom:${i<2?'var(--bw) solid var(--outline-v)':'none'}`}));
+    const shapeScale=[['corner-checkbox',3],['corner-indicator',4],['corner-small',8],['corner-control',10],['corner-container',12],['corner-toolbar',18],['corner-pill',20]].map(s=>({name:s[0],r:s[1]}));
+
+    // dialogs
+    const isDialogs=scr==='dialogs';
+    const dpStyle=(a)=>`appearance:none;border:none;cursor:pointer;padding:7px 16px;border-radius:16px;font:600 13px/1 'Roboto',sans-serif;background:${a?'var(--p)':'transparent'};color:${a?'var(--on-p)':'var(--on-sv)'}`;
+    const dialogPick=[['options','Options'],['save','Save As'],['print','Print']].map(o=>({label:o[1],onClick:this.set('dialog',o[0]),style:dpStyle(st.dialog===o[0])}));
+    const optNavStyle=(a)=>`display:flex;align-items:center;gap:6px;height:34px;padding:0 8px;border-radius:var(--r-sm);cursor:pointer;margin-top:2px;background:${a?'var(--pc)':'transparent'};color:${a?'var(--on-pc)':'var(--on-s)'}`;
+    const ON=[['LibreOffice',0,'chevron_right',0],['Load/Save',0,'chevron_right',0],['Language Settings',0,'chevron_right',0],['LibreOffice Writer',0,'expand_more',1],['General',16,'',0],['View',16,'',0]];
+    const optNav=ON.map((o,i)=>({label:o[0],indent:o[1],arrow:o[2],arrowOp:o[3],style:optNavStyle(o[0]==='General')}));
+    const printRanges=[['all','All pages'],['pages','Pages: 1-3'],['sel','Selection']].map(o=>{const a=st.printRange===o[0];return {label:o[1],onClick:this.set('printRange',o[0]),dotOp:a?1:0,ring:`display:grid;place-items:center;width:20px;height:20px;border-radius:50%;flex:0 0 auto;background:${a?'var(--p)':'transparent'};border:2px solid ${a?'var(--p)':'var(--on-sv)'}`};});
+
+    // status
+    const STATUS={
+      writer:['Page 1 of 3','842 words, 5,120 characters','English (USA)','Default Paragraph Style'],
+      calc:['Sheet 1 of 3','Average: 1,926;  Sum: 15,410','English (USA)'],
+      impress:['Slide '+st.slide+' of 8','Default','English (USA)'],
+      draw:['Page 1 of 1','0 objects selected'],
+      base:['Table: Customers','24 records'],
+      math:['Formula','Elements docked']
+    };
+
+    // features catalog — every .uno: command, loaded from data/features.json
+    const FEATURES=(st.features&&st.features.length)?st.features:FEATURES_FALLBACK;
+    const FSCOPES=[['all','All features','apps'],['shared','Common','description'],['writer','Writer','article'],['calc','Calc','table_chart'],['sd','Draw & Impress','co_present'],['chart','Charts','insert_chart'],['math','Math','functions'],['dbu','Base','database'],['report','Reports','summarize'],['basic','Basic IDE','code'],['biblio','Bibliography','menu_book']];
+    const SCOPELABEL={shared:'Common',writer:'Writer',calc:'Calc',sd:'Draw & Impress',chart:'Charts',math:'Math',dbu:'Base',report:'Reports',basic:'Basic IDE',biblio:'Bibliography'};
+    const fq=(st.featQuery||'').trim().toLowerCase();
+    const fMatch=(f)=>(st.featCat==='all'||f[1]===st.featCat)&&(!fq||(f[0]+' '+f[2]+' '+f[3]).toLowerCase().indexOf(fq)>=0);
+    const scopeBtn=(a)=>`display:flex;align-items:center;gap:10px;width:100%;height:36px;padding:0 10px;border:none;border-radius:var(--r-cont);cursor:pointer;font:500 13px/1 'Roboto',sans-serif;background:${a?'var(--pc)':'transparent'};color:${a?'var(--on-pc)':'var(--on-s)'}`;
+    const scopeCount=(id)=>id==='all'?FEATURES.length:FEATURES.filter(f=>f[1]===id).length;
+    const featScopes=FSCOPES.map(s=>({label:s[1],icon:s[2],count:scopeCount(s[0]),onClick:this.set('featCat',s[0]),style:scopeBtn(st.featCat===s[0])}));
+    const featListArr=FEATURES.filter(fMatch);
+    const featRow=(sel)=>`display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:var(--r-cont);cursor:pointer;background:${sel?'var(--pc)':'transparent'};color:${sel?'var(--on-pc)':'var(--on-s)'}`;
+    const FCAP=400;
+    const featItems=featListArr.slice(0,FCAP).map(f=>({name:f[0],area:f[2],scope:SCOPELABEL[f[1]]||'Common',onClick:this.set('featSel',f[0]),style:featRow(st.featSel===f[0])}));
+    let selF=featListArr.find(f=>f[0]===st.featSel)||FEATURES.find(f=>f[0]===st.featSel)||featListArr[0]||FEATURES[0];
+    const featSelObj={name:selF[0],scope:SCOPELABEL[selF[1]]||'Common',area:selF[2],where:selF[3],note:'Semantic Material tokens — color roles, 12–20 px corner roles and compact / comfortable density — resolve this control at runtime.'};
+
+    // version history
+    const EXTICON={odt:'article',ods:'table_chart',odp:'co_present',odg:'brush',odf:'functions'};
+    const histAll = st.histScope==='doc' ? HISTORY.filter(h=>h.file==='Q3 Board Report.odt') : HISTORY;
+    const histScopes=[['doc','This document'],['project','Whole project']].map(o=>{const a=st.histScope===o[0];return {label:o[1],onClick:this.set('histScope',o[0]),style:`appearance:none;border:none;cursor:pointer;padding:7px 14px;border-radius:16px;font:600 12px/1 'Roboto',sans-serif;background:${a?'var(--p)':'transparent'};color:${a?'var(--on-p)':'var(--on-sv)'}`};});
+    let lastG=null; const histRows=[];
+    histAll.forEach(h=>{ if(h.group!==lastG){lastG=h.group; histRows.push({header:true,label:h.group});}
+      const sel=h.id===st.histSel;
+      histRows.push({item:true,id:h.id,time:h.time,action:h.action,current:!!h.current,onClick:this.set('histSel',h.id),
+        dotStyle:`width:12px;height:12px;border-radius:50%;flex:0 0 auto;margin-top:3px;background:${(sel||h.current)?'var(--p)':'var(--surface)'};border:2px solid ${(sel||h.current)?'var(--p)':'var(--outline)'}`,
+        style:`display:flex;gap:12px;padding:8px 10px;border-radius:var(--r-cont);cursor:pointer;background:${sel?'var(--pc)':'transparent'};color:${sel?'var(--on-pc)':'var(--on-s)'}`});
+    });
+    let hs=histAll.find(h=>h.id===st.histSel)||histAll[0]||HISTORY[0];
+    const hdoc=(hs.docIx!=null)?DOCS[hs.docIx]:null;
+    const histSelObj={time:hs.time,action:hs.action,hash:hs.hash,author:hs.author,added:hs.added,removed:hs.removed,file:hs.file,current:!!hs.current,
+      hasDoc:!!hdoc,noDoc:!hdoc,appIcon:EXTICON[hs.file.split('.').pop()]||'description',
+      docTitle:hdoc?hdoc.title:hs.file,docSub:hdoc?hdoc.sub:'Snapshot preview',
+      blocks:hdoc?hdoc.blocks.map(b=>({text:b[1],style:b[0]==='h'?"margin:16px 0 6px;font:600 16px/1.3 'Roboto',sans-serif;color:var(--p)":"margin:0 0 12px;font:400 13px/1.7 'Roboto',sans-serif;color:var(--on-s);text-align:justify"})):[]};
+
+    return {
+      rootVars, screens, themes, densities, chromes,
+      isHistory:scr==='history', histRows, histScopes, histSelObj, histCount:histAll.length,
+      isCodebase:scr==='code', featScopes, featItems, featSelObj, featCount:FEATURES.length, featShown:featListArr.length, featCapped:featListArr.length>400, featQuery:st.featQuery, onFeatSearch:(e)=>this.setState({featQuery:e.target.value}),
+      isApp, showChromeToggle:isApp,
+      isStart:scr==='start', isWriter:scr==='writer', isCalc:scr==='calc', isImpress:scr==='impress',
+      isDraw:scr==='draw', isBase:scr==='base', isMath:scr==='math', isGallery:scr==='gallery', isDialogs,
+      showClassic: isApp && st.chrome==='classic',
+      showRibbon: isApp && st.chrome==='ribbon',
+      showStatus: isApp,
+      winIcon: (scr==='start'?'grid_view':scr==='gallery'?'palette':scr==='dialogs'?'tune':scr==='code'?'category':scr==='history'?'history':meta.icon),
+      winTitle: (scr==='start'?'LibreOffice Material — Start Center':scr==='gallery'?'Material components — LibreOffice':scr==='dialogs'?'Dialogs — LibreOffice':scr==='code'?'All Features — LibreOffice':scr==='history'?'Version history — LibreOffice':meta.doc+' — LibreOffice '+meta.label),
+      menus, menuOpen:st.menuOpen, closeMenus:()=>this.setState({menuOpen:null}),
+      stdToolbar:STD, fmtToolbar, toast:st.toast, calcSel:st.calcSel, calcFormula,
+      ribbonTabs, ribbonGroups,
+      scNav, createApps, scCards, scView:st.scView, scFilterLabel,
+      charBtns, paraBtns, sidebarRail,
+      calcCols, calcRows, sheetTabs,
+      slides, slideTitle, layouts,
+      drawTools, baseNav, baseTables, baseRows, mathSyms,
+      checkBox, checkOp:st.gCheck?1:0, toggleCheck:this.set('gCheck',!st.gCheck),
+      radios, toggleSwitch:this.set('gSwitch',!st.gSwitch), switchTrack, switchThumb,
+      chips, galTabs, galTabBody, gSlider:st.gSlider,
+      nudgeSlider:()=>this.setState({gSlider: st.gSlider>=90?20:st.gSlider+15}),
+      swatches, listItems, shapeScale,
+      dialogPick, isOptions:st.dialog==='options', isSave:st.dialog==='save', isPrint:st.dialog==='print',
+      optNav, printRanges,
+      statusLeft: STATUS[scr]||[]
+    };
+  }
+}
+</script>
+</body>
+</html>
