@@ -22,7 +22,7 @@ test('desktop package pins the Windows Electron toolchain and secure entry files
   assert.equal(manifest.build.win.requestedExecutionLevel, 'asInvoker');
   assert.equal(manifest.build.nsis.perMachine, false);
   assert.equal(manifest.build.nsis.allowElevation, false);
-  assert.equal(manifest.scripts['dist:win'], 'npm run prepare:git-runtime && electron-builder --win nsis');
+  assert.equal(manifest.scripts['dist:win'], 'npm run prepare:git-runtime && electron-builder --win nsis --publish never');
   assert.equal(manifest.scripts['prepare:git-sources'], 'node scripts/prepare-git-runtime-sources.mjs');
   assert.equal(manifest.scripts['verify:git-runtime'], 'node scripts/verify-git-runtime.mjs');
   assert.ok(manifest.build.extraResources.some((resource) =>
