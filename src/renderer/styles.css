@@ -164,8 +164,13 @@ img { max-width: 100%; }
 .top-app-bar {
   width: 100%; min-width: 0; min-height: 68px; display: flex; align-items: center; gap: 12px; padding: 10px 16px;
   background: color-mix(in srgb, var(--surface-container) 88%, transparent);
-  border-bottom: 1px solid var(--outline-variant); backdrop-filter: blur(18px); z-index: 40;
+  border-bottom: 1px solid var(--outline-variant); backdrop-filter: blur(18px); z-index: 40; -webkit-app-region: drag;
 }
+.top-app-bar button, .top-app-bar input, .top-app-bar select { -webkit-app-region: no-drag; }
+.window-controls { display: inline-flex; gap: 2px; margin-left: auto; -webkit-app-region: no-drag; }
+.window-control { width: 34px; height: 30px; border: 0; border-radius: var(--r-small); background: transparent; color: var(--on-surface); font-size: 1rem; }
+.window-control:hover, .window-control:focus-visible { background: var(--surface-container-highest); outline: 2px solid var(--primary); outline-offset: -2px; }
+.window-control.close:hover { background: #ba1a1a; color: #fff; }
 .brand-button { display: flex; align-items: center; gap: 11px; min-width: 190px; border: 0; background: transparent; padding: 7px 9px; border-radius: var(--r-control); }
 .brand-button .brand-mark { width: 34px; height: 34px; gap: 3px; flex: 0 0 auto; }
 .brand-copy { display: grid; text-align: left; line-height: 1.1; }
@@ -421,6 +426,8 @@ img { max-width: 100%; }
   box-shadow: 0 18px 52px var(--shadow); animation: pop-in var(--duration-fast) var(--ease-expressive);
 }
 .context-menu { min-width: 240px; padding: 7px; border-radius: var(--r-control); }
+.context-menu-search { display:flex; align-items:center; gap:7px; margin:2px 2px 7px; padding:0 9px; min-height:34px; border:1px solid var(--outline); border-radius:var(--r-small); background:var(--surface-container-low); }
+.context-menu-search input { min-width:0; width:100%; border:0; outline:0; background:transparent; color:inherit; font:inherit; }
 .context-menu button { width: 100%; min-height: 38px; display: flex; align-items: center; gap: 10px; padding: 7px 10px; border: 0; border-radius: var(--r-small); background: transparent; text-align: left; }
 .context-menu button:hover { background: var(--surface-container); }.context-menu .separator { height: 1px; margin: 6px 7px; background: var(--outline-variant); }
 

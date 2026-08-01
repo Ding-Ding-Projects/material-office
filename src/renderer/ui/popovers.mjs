@@ -405,7 +405,12 @@ export function openContextMenu({ layer, x, y, items, label = 'Context menu', on
   closeLayer(layer);
   const root = document.createElement('div'); root.className = 'context-menu'; root.setAttribute('role', 'menu'); root.setAttribute('aria-label', label);
   root.style.left = `${clamp(x, 8, innerWidth - 260)}px`; root.style.top = `${clamp(y, 8, innerHeight - Math.min(460, items.length * 42 + 20))}px`;
-  root.innerHTML = items.map((item) => item === null ? '<div class="separator" role="separator"></div>' : `<button type="button" role="menuitem" data-menu-action="${escapeAttribute(item.id)}" ${item.disabled ? 'disabled' : ''}><span>${escapeHtml(item.glyph ?? '')}</span><span>${escapeHtml(item.label)}</span>${item.shortcut ? `<span style="margin-left:auto;color:var(--on-surface-variant);font-size:.7rem">${escapeHtml(item.shortcut)}</span>` : ''}</button>`).join('');
+  root.innerHTML = `<label class="context-menu-search"><span aria-hidden="true">⌕</span><input type="search" data-context-menu-search placeholder="Search menu" aria-label="Search menu"></label><div data-context-menu-items>${items.map((item) => item === null ? '<div class="separator" role="separator"></div>' : `<button type="button" role="menuitem" data-menu-action="${escapeAttribute(item.id)}" data-menu-label="${escapeAttribute(item.label)}" ${item.disabled ? 'disabled' : ''}><span>${escapeHtml(item.glyph ?? '')}</span><span>${escapeHtml(item.label)}</span>${item.shortcut ? `<span style="margin-left:auto;color:var(--on-surface-variant);font-size:.7rem">${escapeHtml(item.shortcut)}</span>` : ''}</button>`).join('')}</div>`;
+  root.querySelector('[data-context-menu-search]')?.addEventListener('input', (event) => {
+    const query = event.target.value.trim().toLocaleLowerCase();
+    root.querySelectorAll('[data-menu-action]').forEach((button) => { button.hidden = Boolean(query) && !button.dataset.menuLabel.toLocaleLowerCase().includes(query); });
+    root.querySelectorAll('.separator').forEach((separator) => { separator.hidden = Boolean(query); });
+  });
   root.addEventListener('click', (event) => {
     const button = event.target.closest('[data-menu-action]'); if (!button) return;
     const item = items.find((candidate) => candidate?.id === button.dataset.menuAction); item?.action?.(); closeLayer(layer); onClose?.();

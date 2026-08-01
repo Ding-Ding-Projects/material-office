@@ -80,6 +80,7 @@ function createWindow() {
     minWidth: 720,
     minHeight: 560,
     show: false,
+    frame: false,
     backgroundColor: '#FFFBFE',
     title: 'Material Office',
     autoHideMenuBar: false,

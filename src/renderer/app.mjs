@@ -2554,6 +2554,9 @@ appRoot.addEventListener('click', async (event) => {
     case 'refresh-libreoffice': await refreshLibreOffice(); break;
     case 'choose-libreoffice': await chooseLibreOfficeInstallation(); break;
     case 'open-external-editor': await openActiveInExternalEditor(); break;
+    case 'window-minimize': if (desktop?.appWindow?.minimize) await desktop.appWindow.minimize(); break;
+    case 'window-maximize': if (desktop?.appWindow?.toggleMaximize) await desktop.appWindow.toggleMaximize(); break;
+    case 'close-window': closeCurrentAppWindow(); break;
     case 'save-custom-document': await saveActiveCustomWordDocument(); break;
     case 'open-windows-contrast': await openWindowsContrastSettings(); break;
     case 'copy-changelog': try { await navigator.clipboard.writeText(await changelogMarkdown()); notify({ type: 'success', title: 'Changelog copied · 更新紀錄已複製', message: 'The filtered release view is on the clipboard.', persistent: false }); } catch {} break;
@@ -2570,6 +2573,15 @@ toastLayer.addEventListener('click', (event) => {
 
 appRoot.addEventListener('input', (event) => {
   const target = event.target;
+  if (target.matches('[data-context-menu-search]')) {
+    const query = target.value.trim().toLocaleLowerCase();
+    const menu = target.closest('.context-menu');
+    menu?.querySelectorAll('[data-context-menu-label],[data-menu-label]').forEach((item) => {
+      item.hidden = Boolean(query) && !String(item.dataset.contextMenuLabel ?? item.dataset.menuLabel ?? '').toLocaleLowerCase().includes(query);
+    });
+    menu?.querySelectorAll('.separator').forEach((separator) => { separator.hidden = Boolean(query); });
+    return;
+  }
   if (target.matches('[data-search-id]')) {
     const id = target.dataset.searchId; const search = state.searches[id] ??= initialSearch(); search.query = target.value; if (search.mode === 'regex') search.pattern = target.value;
     if (id === 'global') showGlobalSearch(); else render(); queuePersist('search changed'); return;
