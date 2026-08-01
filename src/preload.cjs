@@ -20,7 +20,9 @@ const api = Object.freeze({
   }),
   appWindow: Object.freeze({
     openNew: () => invoke('app-window:open-new'),
-    closeCurrent: () => invoke('app-window:close-current')
+    closeCurrent: () => invoke('app-window:close-current'),
+    minimize: () => invoke('app-window:minimize'),
+    toggleMaximize: () => invoke('app-window:toggle-maximize')
   }),
   workspace: Object.freeze({
     get: () => invoke('workspace:get'),

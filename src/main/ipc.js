@@ -45,6 +45,8 @@ export const IPC_CHANNELS = Object.freeze({
   WINDOWS_OPEN_CONTRAST_SETTINGS: 'windows:open-contrast-settings',
   APP_WINDOW_OPEN_NEW: 'app-window:open-new',
   APP_WINDOW_CLOSE_CURRENT: 'app-window:close-current',
+  APP_WINDOW_MINIMIZE: 'app-window:minimize',
+  APP_WINDOW_TOGGLE_MAXIMIZE: 'app-window:toggle-maximize',
   NOTIFICATIONS_LIST: 'notifications:list',
   NOTIFICATIONS_DISMISS: 'notifications:dismiss',
   NOTIFICATIONS_CLEAR: 'notifications:clear-dismissed',
@@ -219,6 +221,16 @@ export function registerIpcHandlers(options) {
     noPayload(payload);
     window.close();
     return { closed: true };
+  });
+  add(IPC_CHANNELS.APP_WINDOW_MINIMIZE, async (payload, window) => {
+    noPayload(payload);
+    window.minimize();
+    return { minimized: true };
+  });
+  add(IPC_CHANNELS.APP_WINDOW_TOGGLE_MAXIMIZE, async (payload, window) => {
+    noPayload(payload);
+    if (window.isMaximized()) window.unmaximize(); else window.maximize();
+    return { maximized: window.isMaximized() };
   });
   add(IPC_CHANNELS.WORKSPACE_GET, async (payload) => {
     noPayload(payload);

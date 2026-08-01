@@ -349,6 +349,7 @@ test('workspace history labels are bounded main-owned facts, never renderer text
   assert.equal(deriveWorkspaceHistoryAction(null, base), 'workspace initialized');
   assert.equal(deriveWorkspaceHistoryAction(base, created), 'document created');
   assert.equal(deriveWorkspaceHistoryAction(created, updated), 'document updated');
+  assert.equal(deriveWorkspaceHistoryAction({ ...created, documents: [{ ...created.documents[0], unsaved: true }] }, { ...updated, documents: [{ ...updated.documents[0], unsaved: false }] }), 'document discarded');
   assert.equal(deriveWorkspaceHistoryAction(updated, base), 'document deleted');
   const combined = deriveWorkspaceHistoryAction(base, {
     ...base,
