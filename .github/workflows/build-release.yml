@@ -94,15 +94,10 @@ jobs:
           Set-StrictMode -Version Latest
           $ErrorActionPreference = "Stop"
           $msi = Join-Path $env:RUNNER_TEMP $env:LIBREOFFICE_MSI_NAME
-          for ($attempt = 1; $attempt -le 5; $attempt++) {
-            try {
-              if (Test-Path -LiteralPath $msi) { Remove-Item -LiteralPath $msi -Force }
-              Invoke-WebRequest -Uri $env:LIBREOFFICE_MSI_URL -OutFile $msi -MaximumRedirection 10 -TimeoutSec 300
-              if ((Get-Item -LiteralPath $msi).Length -gt 0) { break }
-            } catch {
-              if ($attempt -eq 5) { throw }
-              Start-Sleep -Seconds ([int]([math]::Pow(2, $attempt)))
-            }
+          if (Test-Path -LiteralPath $msi) { Remove-Item -LiteralPath $msi -Force }
+          & curl.exe --fail --location --retry 5 --retry-all-errors --retry-delay 5 --connect-timeout 30 --max-time 300 --output $msi $env:LIBREOFFICE_MSI_URL
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $msi) -or (Get-Item -LiteralPath $msi).Length -le 0) {
+            throw "LibreOffice MSI download failed with curl exit code $LASTEXITCODE."
           }
           $actual = (Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash.ToLowerInvariant()
           if ($actual -ne $env:LIBREOFFICE_MSI_SHA256) {
