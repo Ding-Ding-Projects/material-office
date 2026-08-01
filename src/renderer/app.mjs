@@ -2380,6 +2380,16 @@ async function runSmokeTest() {
   check('appearance editor customizes itself', Boolean(editorControl.dataset.appearanceId));
   required('.appearance-editor [data-close]', 'appearance editor close').click();
   const priorToggle = state.runtime.componentDemo.toggle; componentSwitch.click(); check('component switch behavior', state.runtime.componentDemo.toggle !== priorToggle);
+  const unavailableWarningsBefore = state.notifications.filter((item) => /Command unavailable|指令未能使用/u.test(String(item.title))).length;
+  const componentCheck = required('[data-action="demo-check"]', 'component demo checkbox'); const priorCheck = state.runtime.componentDemo.check; componentCheck.click();
+  check('component checkbox behavior', state.runtime.componentDemo.check !== priorCheck);
+  const priorDensity = state.preferences.density; const nextDensity = priorDensity === 'compact' ? 'comfortable' : 'compact';
+  const componentDensity = required('[data-action="set-density"]', 'component density select'); componentDensity.value = nextDensity; componentDensity.dispatchEvent(new Event('change', { bubbles: true }));
+  check('component density persistence', state.preferences.density === nextDensity && required('[data-action="set-density"]', 'rerendered component density select').value === nextDensity);
+  const componentSlider = required('[data-action="demo-slider"]', 'component progress slider'); componentSlider.value = '37'; componentSlider.dispatchEvent(new Event('input', { bubbles: true }));
+  check('component progress feedback', state.runtime.componentDemo.slider === 37 && required('[data-demo-slider-value]', 'component progress value').textContent === '37' && required('.component-demo progress[value="37"]', 'component progress bar'));
+  check('native controls avoid command warnings', state.notifications.filter((item) => /Command unavailable|指令未能使用/u.test(String(item.title))).length === unavailableWarningsBefore);
+  state.preferences.density = priorDensity; applyPreferences(); render();
   const modalOrigin = document.createElement('button'); modalOrigin.className = 'sr-only'; modalOrigin.textContent = 'Modal focus origin'; appRoot.append(modalOrigin); modalOrigin.focus();
   const decisionSmoke = showAppModal({ layer: dialogLayer, title: inlineCopy('Decision focus smoke', '決定焦點 smoke 測試'), decision: true, body: `<p>${dialogText('Choose an action.', '請選擇操作。')}</p>`, actions: [{ id: 'cancel', label: tr('action.cancel') }, { id: 'confirm', label: inlineCopy('Confirm', '確認'), style: 'filled' }] }); await Promise.resolve();
   const decisionDialog = required('.dialog', 'decision dialog', decisionSmoke); const decisionFocusables = [...decisionDialog.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])')];
@@ -2445,6 +2455,10 @@ appRoot.addEventListener('click', async (event) => {
   const tabClose = event.target.closest('.tab-close'); if (tabClose) { event.stopPropagation(); closeTab(tabClose.dataset.tabId); return; }
   const tab = event.target.closest('[data-tab-id]'); if (tab && !event.target.closest('[data-action]')) { activateTab(tab.dataset.tabId); return; }
   const target = event.target.closest('[data-action]'); if (!target) return;
+  // Native form controls own their click. Their product behavior is handled by
+  // the input/change delegates below; treating the same click as a command
+  // produces a false "Command unavailable" warning before the real change.
+  if (target.matches('input, select, textarea, option')) return;
   const action = target.dataset.action;
   if (action !== 'toggle-menu') { state.runtime.openMenu = null; popoverLayer.replaceChildren(); }
   switch (action) {
@@ -2507,7 +2521,17 @@ appRoot.addEventListener('click', async (event) => {
     case 'math-symbol': insertMathSymbol(target.dataset.symbol); break;
     case 'demo-switch': state.runtime.componentDemo.toggle = !state.runtime.componentDemo.toggle; render(); queuePersist('component demo changed'); break;
     case 'demo-toast': notify({ type: 'success', title: 'Component responded · 元件有反應', message: 'This is a real non-blocking notification with persisted history.', persistent: false }); break;
-    case 'copy-token': await navigator.clipboard.writeText(target.dataset.token); notify({ type: 'success', title: 'Token copied · Token 已複製', message: target.dataset.token, persistent: false }); break;
+    case 'copy-token': {
+      const token = target.dataset.tokenValue ?? target.dataset.token;
+      try {
+        await navigator.clipboard.writeText(token);
+        notify({ type: 'success', title: 'Token copied · Token 已複製', message: token, persistent: false });
+      } catch (error) {
+        notify({ type: 'error', title: 'Token could not be copied · Token 未能複製', message: error.message, persistent: true });
+      }
+      break;
+    }
+    case 'about': showAbout(); break;
     case 'command-scope': state.runtime.commandScope = target.dataset.scope; render(); break;
     case 'command-select': state.runtime.selectedCommandId = target.dataset.commandId; render(); break;
     case 'run-command': await runFeatureCommand(target.dataset.commandId); break;
@@ -2573,7 +2597,14 @@ appRoot.addEventListener('input', (event) => {
   if (target.matches('[data-action="base-form-field"]')) { const doc = getActiveDocument(state); const row = doc?.content?.rows?.find((item) => item.id === state.runtime.selectedBaseRecord) ?? doc?.content?.rows?.[0]; if (row) { if (state.runtime.baseFormRecordId !== row.id) { state.runtime.baseFormRecordId = row.id; state.runtime.baseFormDraft = { ...row }; } state.runtime.baseFormDraft[target.dataset.field] = target.value.slice(0, 10_000); } return; }
   if (target.matches('[data-action="zoom-range"]')) { state.runtime.zoom = Math.max(50, Math.min(200, Number(target.value))); document.documentElement.style.setProperty('--document-zoom', String(state.runtime.zoom / 100)); if (target.previousElementSibling) target.previousElementSibling.textContent = `${state.runtime.zoom}%`; queuePersist('document zoom changed'); return; }
   if (target.matches('[data-action="demo-field"]')) { state.runtime.componentDemo.field = target.value; queuePersist('component demo changed'); return; }
-  if (target.matches('[data-action="demo-slider"]')) { state.runtime.componentDemo.slider = Number(target.value); target.closest('.component-demo').querySelector('progress').value = Number(target.value); queuePersist('component demo changed'); return; }
+  if (target.matches('[data-action="demo-slider"]')) {
+    state.runtime.componentDemo.slider = Number(target.value);
+    const demo = target.closest('.component-demo');
+    demo?.querySelector('progress')?.setAttribute('value', String(state.runtime.componentDemo.slider));
+    if (demo?.querySelector('[data-demo-slider-value]')) demo.querySelector('[data-demo-slider-value]').textContent = String(state.runtime.componentDemo.slider);
+    queuePersist('component demo changed');
+    return;
+  }
   if (target.matches('[data-action="funny-level"]')) { state.preferences.funny[target.dataset.language] = Number(target.value); target.nextElementSibling.value = target.value; persistPreferences('funny level changed'); return; }
   if (target.matches('[data-action="set-accent"]')) { state.preferences.accent = target.value; persistPreferences('accent changed'); return; }
   if (target.matches('[data-action="set-font"]')) { state.preferences.fontFamily = target.value.slice(0, 128); persistPreferences('font changed'); return; }

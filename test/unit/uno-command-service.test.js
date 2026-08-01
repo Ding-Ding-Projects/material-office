@@ -338,6 +338,7 @@ test('failure to close the UNO acceptor terminates the dedicated LibreOffice pro
     libreOffice: { discover: async () => ({ installation: fakeInstallation(), errors: [] }) },
     randomBytes: () => Buffer.alloc(24, 0xa1),
     launch: async () => ({ pid: 2468 }),
+    isAlive: () => false,
     terminate: async (pid) => {
       terminated.push(pid);
       return true;
