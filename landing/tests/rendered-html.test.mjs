@@ -84,6 +84,8 @@ test("removes starter state and retains accessibility and local-preference contr
   assert.match(page, /localStorage/);
   assert.match(page, /getRandomValues/);
   assert.match(page, /<RegexBuilder/);
+  assert.match(page, /Download Windows installer/);
+  assert.match(page, /releaseState\.installerUrl/);
   assert.match(page, /role="tablist"/);
   assert.match(page, /aria-live="polite"/);
   assert.match(page, /Minimize preview/);

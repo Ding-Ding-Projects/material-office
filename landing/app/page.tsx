@@ -1654,6 +1654,7 @@ export default function Home() {
                 <div className="button-row">
                   <button type="button" className="filled-button" onClick={() => activateTab("surfaces")}>{localized(language, "Inspect implemented surfaces", "檢視已實作介面")} <span aria-hidden="true">→</span></button>
                   <button type="button" className="tonal-button" onClick={() => activateTab("features")}>2,433 {localized(language, "LibreOffice command records", "個 LibreOffice 指令記錄")}</button>
+                  {releaseState.status === "published" && releaseState.installerUrl && <a className="filled-button" href={releaseState.installerUrl} download={releaseState.installerName ?? undefined}>{localized(language, "Download Windows installer", "下載 Windows 安裝檔")} <span aria-hidden="true">↓</span></a>}
                 </div>
                 <dl className="hero-stats">
                   <div><dt>6</dt><dd>{localized(language, "original local editor models", "個原創本機編輯模型")}</dd></div>
