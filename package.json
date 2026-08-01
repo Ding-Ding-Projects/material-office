@@ -39,7 +39,7 @@
     "verify:git-runtime": "node scripts/verify-git-runtime.mjs",
     "verify:libreoffice": "node scripts/verify-libreoffice-integration.mjs",
     "predist:win": "npm run sync:legal",
-    "dist:win": "npm run prepare:git-runtime && electron-builder --win nsis",
+    "dist:win": "npm run prepare:git-runtime && electron-builder --win nsis --publish never",
     "verify:fuses": "node scripts/verify-electron-fuses.mjs",
     "verify:package": "node scripts/verify-package-contents.mjs"
   },
