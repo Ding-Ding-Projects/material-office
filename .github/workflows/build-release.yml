@@ -568,7 +568,7 @@ jobs:
 
           $($assetLines -join "`n")
 
-Authenticode status: **$($metadata.signatureStatus)**. When it is ``NotSigned``, the per-user installer cannot request elevation and Windows may show its normal reputation warning until a code-signing identity is configured. Verify the exact installer against this repository's workflow identity with ``gh attestation verify $($installerAsset[0].name) --repo $env:GITHUB_REPOSITORY`` and compare the attached SHA-256 file. The attached source archives, exact Git-for-Windows recipes/patches, component manifest, notices, and provenance record accompany the binaries; the dim-sum image retains the rights boundary stated in its provenance record.
+          Authenticode status: **$($metadata.signatureStatus)**. When it is ``NotSigned``, the per-user installer cannot request elevation and Windows may show its normal reputation warning until a code-signing identity is configured. Verify the exact installer against this repository's workflow identity with ``gh attestation verify $($installerAsset[0].name) --repo $env:GITHUB_REPOSITORY`` and compare the attached SHA-256 file. The attached source archives, exact Git-for-Windows recipes/patches, component manifest, notices, and provenance record accompany the binaries; the dim-sum image retains the rights boundary stated in its provenance record.
           "@ | Set-Content -LiteralPath $notesPath -Encoding utf8NoBOM
 
           $assetPaths = @($metadata.assets | ForEach-Object { Join-Path $bundleDirectory $_.name })
