@@ -185,8 +185,11 @@ function legacyCopyPair(value, { cantoneseTechnicalFallback = false } = {}) {
 function initialSearch() { return { mode: 'plain', query: '', pattern: '', flags: 'i', sample: '', open: false }; }
 
 function sampleDocuments(now = new Date().toISOString()) {
-  void now;
-  return [];
+  return [
+    { id: 'document-writer', type: 'writer', title: 'Untitled Writer 1.odt', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { html: DEFAULT_WRITER_HTML }, unsaved: false },
+    { id: 'document-calc', type: 'calc', title: 'Untitled Calc 1.ods', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { sheets: [{ id: 'sheet-1', name: 'Sheet 1', cells: { ...DEFAULT_CALC_CELLS } }], activeSheetId: 'sheet-1' }, unsaved: false },
+    { id: 'document-impress', type: 'impress', title: 'Untitled Impress 1.odp', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { slides: structuredClone(DEFAULT_SLIDES), activeSlideId: DEFAULT_SLIDES[0].id }, unsaved: false }
+  ].map((documentRecord) => ({ ...documentRecord, savedContent: structuredClone(documentRecord.content) }));
 }
 
 function createDefaultUiState() {
@@ -300,8 +303,10 @@ function mergeUiState(saved) {
     searches: { ...defaults.searches, ...(saved.searches ?? {}) },
     runtime: { ...defaults.runtime, ...(saved.runtime ?? {}), openMenu: null, menuAnchor: null }
   };
-  if (!merged.tabs.items.length) merged.tabs.items = defaults.tabs.items;
-  if (!merged.tabs.items.some((tab) => tab.id === merged.tabs.activeId)) merged.tabs.activeId = merged.tabs.items[0].id;
+  merged.tabs.items = merged.tabs.items.filter((tab) => tab && typeof tab === 'object' && typeof tab.id === 'string' && typeof tab.surface === 'string');
+  if (!merged.tabs.items.length) merged.tabs.items = defaults.tabs.items.map((tab) => ({ ...tab }));
+  const firstTab = merged.tabs.items[0] ?? { id: 'tab-home', surface: 'home', label: 'Home', pinned: true, groupId: null, unsaved: false };
+  if (!merged.tabs.items.some((tab) => tab.id === merged.tabs.activeId)) merged.tabs.activeId = firstTab.id;
   return merged;
 }
 
