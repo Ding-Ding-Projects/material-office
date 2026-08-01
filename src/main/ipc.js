@@ -26,6 +26,7 @@ export const IPC_CHANNELS = Object.freeze({
   DOCUMENTS_CREATE: 'documents:create',
   DOCUMENTS_OPEN: 'documents:open',
   DOCUMENTS_SAVE_METADATA: 'documents:save-metadata',
+  DOCUMENTS_SAVE_CUSTOM: 'documents:save-custom',
   DOCUMENTS_EXPORT: 'documents:export',
   HISTORY_LIST: 'history:list',
   HISTORY_DIFF: 'history:diff',
@@ -321,6 +322,23 @@ export function registerIpcHandlers(options) {
       history: result.history ?? null,
       metadataError: result.metadataError ?? null
     };
+  });
+  add(IPC_CHANNELS.DOCUMENTS_SAVE_CUSTOM, async (payload, window) => {
+    if (!services.customWord) throw new AppError('CUSTOM_WORD_UNAVAILABLE', 'Custom Word saving requires the packaged local Git runtime.');
+    const request = requirePlainObject(payload, 'Material Office Word save request');
+    const keys = Object.keys(request).sort();
+    if (keys.join(',') !== 'content,documentId,kind,title') {
+      throw new ValidationError('Material Office Word save request contains unsupported fields.');
+    }
+    const selection = await dialog.showSaveDialog(window, {
+      title: 'Save Material Office Word document',
+      defaultPath: `${String(request.title).replace(/[^A-Za-z0-9 _.-]+/g, '_').slice(0, 120) || 'Untitled'}.mow`,
+      filters: [{ name: 'Material Office Word', extensions: ['mow'] }],
+      properties: ['createDirectory', 'showOverwriteConfirmation']
+    });
+    if (selection.canceled || !selection.filePath) return { canceled: true };
+    const saved = await services.customWord.save({ ...request, targetPath: selection.filePath });
+    return { canceled: false, ...saved };
   });
   add(IPC_CHANNELS.HISTORY_LIST, async (payload) => {
     const request = payload === undefined

@@ -33,6 +33,7 @@ function renderProperties(ctx, surface) {
     <div class="property-group"><h3>${escapeHtml(t('property.integration'))}</h3>
       <p style="font-size:.78rem;line-height:1.45;color:var(--on-surface-variant)">${escapeHtml(ctx.libreOffice?.available ? t('libreoffice.available') : t('libreoffice.unavailable'))}</p>
       <button class="button-label outlined" type="button" data-action="edit-libreoffice">${escapeHtml(t('action.editLibreOffice'))}</button>
+      <button class="button-label filled" type="button" data-action="save-custom-document">${escapeHtml(localized(ctx, 'Save Material Office Word', '儲存 Material Office Word'))}</button>
     </div>
   </aside>`;
 }

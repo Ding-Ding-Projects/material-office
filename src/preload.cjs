@@ -38,6 +38,7 @@ const api = Object.freeze({
     create: (request) => invoke('documents:create', request),
     open: () => invoke('documents:open'),
     saveMetadata: (request) => invoke('documents:save-metadata', request),
+    saveCustom: (request) => invoke('documents:save-custom', request),
     export: (request) => invoke('documents:export', request)
   }),
   history: Object.freeze({

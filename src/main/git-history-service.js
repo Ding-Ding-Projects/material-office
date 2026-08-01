@@ -274,6 +274,32 @@ export class GitHistoryService {
     });
   }
 
+  async exportBundle() {
+    return this.#enqueue(async () => {
+      await this.#initializeNow();
+      const bundlePath = path.join(this.repositoryPath, `.material-office-${this.id()}.bundle`);
+      try {
+        await this.#git(['bundle', 'create', bundlePath, '--all'], [0]);
+        return await this.fs.readFile(bundlePath);
+      } finally {
+        await this.fs.rm(bundlePath, { force: true }).catch(() => undefined);
+      }
+    });
+  }
+
+  async exportBundle() {
+    return this.#enqueue(async () => {
+      await this.#initializeNow();
+      const bundlePath = path.join(this.repositoryPath, `.material-office-${this.id()}.bundle`);
+      try {
+        await this.#git(['bundle', 'create', bundlePath, '--all'], [0]);
+        return await this.fs.readFile(bundlePath);
+      } finally {
+        await this.fs.rm(bundlePath, { force: true }).catch(() => undefined);
+      }
+    });
+  }
+
   async diffSnapshot(revision, currentState) {
     const normalizedRevision = requireExactHistoryRevision(revision);
     return this.#enqueue(async () => {

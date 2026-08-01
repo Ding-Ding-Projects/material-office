@@ -4,6 +4,8 @@
 
 An isolated Git repository under Electron user data snapshots documents, records, tabs/groups, appearance, notifications, integrations, and settings. The Windows package carries a checksum-pinned Git-for-Windows MinGit runtime, so history does not depend on a developer tool already being installed. Revisions are labeled from the main process by the real state change. Restore writes the selected state and immediately records the restore as a new revision.
 
+Writer, Calc, Impress, Draw, Base, and Math surfaces also expose **Save Material Office Word**. It writes a `.mow` custom Word package containing the document state and an embedded, verifiable Git bundle. Each package save creates a commit in the app-owned per-document repository; restoring a revision creates another commit, so undo remains undoable. The working repositories stay in app-owned user data and never become arbitrary renderer-controlled `.git` folders.
+
 Pruning is an explicit reviewed operation. It rebuilds the isolated branch from exactly the newest configured number of logical snapshots, preserves each retained snapshot, action, and recorded event time, atomically swaps the branch tip, then expires unreachable reflogs and objects. Restore remains append-only after pruning: restoring any retained snapshot creates a new newest revision.
 
 ## Configuration

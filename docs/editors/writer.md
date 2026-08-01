@@ -2,7 +2,7 @@
 
 ## Behavior
 
-Writer provides an editable paged document, semantic headings, rich-text formatting, lists, alignment, word count, autosave, tabs, and local history. Portable unsaved content exports honestly as HTML; a real office-format document opens in LibreOffice.
+Writer provides an editable paged document, semantic headings, rich-text formatting, lists, alignment, word count, autosave, tabs, local history, and Save Material Office Word. The custom `.mow` package contains the document plus an embedded Git bundle, so each save is committed and a restore is a new commit that can itself be undone. Portable unsaved content exports honestly as HTML; a real office-format document opens in LibreOffice.
 
 ## Configuration
 
@@ -23,4 +23,3 @@ Electron smoke verifies the editable Writer page. Persistence tests snapshot wor
 ## Suggested articles
 
 [LibreOffice integration](../integration/libreoffice.md) · [Version history](../data/version-history.md) · [Appearance](../customization/appearance-localization.md)
-

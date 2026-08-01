@@ -80,8 +80,8 @@ test('release workflow covers every branch push and dispatch without tag-trigger
   assert.match(workflow, /on:\s*\r?\n\s+push:\s*\r?\n\s+branches:\s*\r?\n\s+- "\*\*"\s*\r?\n\s+workflow_dispatch:/u);
   assert.doesNotMatch(workflow, /^\s+tags(?:-ignore)?:/mu);
   assert.match(workflow, /concurrency:[\s\S]*?cancel-in-progress:\s*false/u);
-  const pagesJob = /\n  pages:\n([\s\S]*?)\n  release:/u.exec(workflow)?.[1] ?? '';
-  const releaseJob = /\n  release:\n([\s\S]*)$/u.exec(workflow)?.[1] ?? '';
+  const pagesJob = /\r?\n  pages:\r?\n([\s\S]*?)\r?\n  release:/u.exec(workflow)?.[1] ?? '';
+  const releaseJob = /\r?\n  release:\r?\n([\s\S]*)$/u.exec(workflow)?.[1] ?? '';
   assert.match(pagesJob, /needs:[\s\S]*?- release\s/u);
   assert.match(pagesJob, /needs\.release\.result == 'success'/u);
   assert.doesNotMatch(releaseJob, /needs\.pages/u);

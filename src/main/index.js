@@ -16,6 +16,7 @@ import {
   createAppProtocolHandler
 } from './app-protocol.js';
 import { ChangelogService, VERIFIED_CHANGELOG_ENTRIES } from './changelog-service.js';
+import { CustomWordDocumentService } from './custom-word-document-service.js';
 import { DataFileService } from './data-file-service.js';
 import { DocumentWorkspaceService } from './document-workspace-service.js';
 import { ExternalEditorService } from './external-editor-service.js';
@@ -249,6 +250,9 @@ async function startApplication() {
   const windowsSettings = new WindowsSettingsService();
   const notifications = new NotificationService(state);
   const documents = new DocumentWorkspaceService({ state, libreOffice });
+  const customWord = gitExecutable
+    ? new CustomWordDocumentService({ rootPath: path.join(userDataPath, 'custom-word-history'), gitExecutable })
+    : null;
   const changelog = new ChangelogService(VERIFIED_CHANGELOG_ENTRIES);
 
   await unoCommands.initialize();
@@ -294,6 +298,7 @@ async function startApplication() {
       windowsSettings,
       notifications,
       documents,
+      customWord,
       changelog
     }
   });

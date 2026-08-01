@@ -1947,6 +1947,29 @@ async function openActiveInExternalEditor() {
   }
 }
 
+async function saveActiveCustomWordDocument() {
+  const tab = getActiveTab(state);
+  const document = getActiveDocument(state);
+  if (!tab || !document || !desktop?.documents?.saveCustom) return;
+  try {
+    const result = await desktop.documents.saveCustom({
+      documentId: document.id,
+      title: document.title ?? `${tab.label ?? 'Untitled'} document`,
+      kind: document.type ?? tab.surface ?? 'writer',
+      content: document.content
+    });
+    if (result?.canceled) return;
+    notify({
+      type: 'success',
+      title: inlineCopy('Material Office Word saved', 'Material Office Word 已儲存'),
+      message: inlineCopy('{name} contains an append-only Git bundle; every later restore is a new undoable commit.', '{name} 內置唯讀追加 Git bundle；之後每次還原都會成為另一個可以再撤銷嘅 commit。', { name: result.outputName }),
+      persistent: false
+    });
+  } catch (error) {
+    notify({ type: 'error', title: inlineCopy('Custom Word save failed', '自訂 Word 儲存失敗'), message: error.message, persistent: true });
+  }
+}
+
 async function openWindowsContrastSettings() {
   if (!desktop?.windows?.openContrastSettings) {
     notify({ type: 'warning', title: 'Windows Settings unavailable · Windows 設定暫時開唔到', message: 'This action is available in the packaged Windows app.', persistent: true });
@@ -2507,6 +2530,7 @@ appRoot.addEventListener('click', async (event) => {
     case 'refresh-libreoffice': await refreshLibreOffice(); break;
     case 'choose-libreoffice': await chooseLibreOfficeInstallation(); break;
     case 'open-external-editor': await openActiveInExternalEditor(); break;
+    case 'save-custom-document': await saveActiveCustomWordDocument(); break;
     case 'open-windows-contrast': await openWindowsContrastSettings(); break;
     case 'copy-changelog': try { await navigator.clipboard.writeText(await changelogMarkdown()); notify({ type: 'success', title: 'Changelog copied · 更新紀錄已複製', message: 'The filtered release view is on the clipboard.', persistent: false }); } catch {} break;
     case 'export-changelog': try { downloadBlob('material-office-changelog.md', 'text/markdown', await changelogMarkdown()); } catch {} break;

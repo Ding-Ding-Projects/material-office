@@ -8,6 +8,14 @@ Material Office is a Windows-only Electron workspace with original local editing
 
 **Documentation:** [open the Material Office site](https://ding-ding-projects.github.io/material-office/).
 
+## Screenshots
+
+The following capture comes from the packaged Windows smoke run, with the Material Design start center rendered by the actual Electron build:
+
+![Material Office Windows start center](artifacts/smoke/material-office-home.png)
+
+_Verified capture: packaged smoke run, 2026-07-31; the same run exercised Writer, Calc, Impress, Draw, Base, Math, tabs, appearance, history, notifications, and the LibreOffice bridge._
+
 ## Contents
 
 - [What works](#what-works)
@@ -26,6 +34,7 @@ Material Office is a Windows-only Electron workspace with original local editing
 - English, playful Hong Kong Cantonese, and compact bilingual modes, plus independent 1–5 funny levels.
 - Per-element appearance controls, installed-font discovery, continuous color translation, theme import/export, theme, density, and scaling.
 - Local Git-backed snapshots with a bundled checksum-pinned five-file runtime, restore-as-a-new-revision, date/action/text filters, notification history, and changelog export. Exact Git/libiconv/gettext corresponding-source assets and build recipes are release-gated.
+- Material Office Word (`.mow`) saves package the document plus a verifiable Git bundle; every custom-document save is a local commit, and restoring creates a new commit so an undo can itself be undone.
 - A bundled, opt-out 1% startup dim-sum surprise using the verified local catalog asset only.
 
 ## Run locally
