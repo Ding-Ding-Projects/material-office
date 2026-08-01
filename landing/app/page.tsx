@@ -994,6 +994,7 @@ export default function Home() {
   const [newGroupColor, setNewGroupColor] = useState("#6750a4");
   const [includePinnedInClose, setIncludePinnedInClose] = useState(false);
   const [closeReview, setCloseReview] = useState<CloseReview | null>(null);
+  const [previewWindow, setPreviewWindow] = useState<"open" | "minimized" | "closed">("open");
   const surpriseChecked = useRef(false);
   const noticeId = useRef(0);
   const groupSequence = useRef(0);
@@ -1660,12 +1661,18 @@ export default function Home() {
                   <div><dt>{releaseState.status === "published" ? 1 : 0}</dt><dd>{localized(language, "published releases", "個已發布版本")}</dd></div>
                 </dl>
               </div>
-              <div className="product-window" aria-label={localized(language, releaseState.status === "published" ? `Illustrative preview of Material Office Writer ${releaseState.version}` : "Illustrative preview of the Material Office Writer candidate", releaseState.status === "published" ? `Material Office Writer ${releaseState.version} 示意預覽` : "Material Office Writer 候選版示意預覽")}>
-                <div className="window-title"><span className="mini-mark">▦</span><strong>Q3 Board Report.odt</strong><span className="window-buttons">— □ ×</span></div>
-                <div className="window-menu"><span>File</span><span>Edit</span><span>View</span><span>Insert</span><span>Format</span><span>Tools</span></div>
-                <div className="window-tools"><b>B</b><i>I</i><u>U</u><span>≡</span><span>☷</span><span className="tool-fill" /></div>
-                <div className="window-body"><aside><span className="active-line" /><span /><span /><span /></aside><article><small>CONFIDENTIAL · Q3</small><h2>Board report</h2><p /><p /><h3>Executive summary</h3><p /><p /></article><div className="properties"><strong>Properties</strong><span /><span /><span /></div></div>
-              </div>
+              {previewWindow === "closed" ? (
+                <div className="product-window-preview-closed"><p>{localized(language, "Writer preview closed.", "Writer 預覽已關閉。")}</p><button type="button" className="tonal-button" onClick={() => setPreviewWindow("open")}>{localized(language, "Restore preview", "還原預覽")}</button></div>
+              ) : previewWindow === "minimized" ? (
+                <div className="product-window-preview-minimized"><strong>Q3 Board Report.odt</strong><button type="button" className="tonal-button" onClick={() => setPreviewWindow("open")}>{localized(language, "Restore", "還原")}</button></div>
+              ) : (
+                <div className="product-window" aria-label={localized(language, releaseState.status === "published" ? `Illustrative preview of Material Office Writer ${releaseState.version}` : "Illustrative preview of the Material Office Writer candidate", releaseState.status === "published" ? `Material Office Writer ${releaseState.version} 示意預覽` : "Material Office Writer 候選版示意預覽")}>
+                  <div className="window-title"><span className="mini-mark">▦</span><strong>Q3 Board Report.odt</strong><span className="window-buttons"><button type="button" aria-label={localized(language, "Minimize preview", "最小化預覽")} onClick={() => setPreviewWindow("minimized")}>—</button><button type="button" aria-label={localized(language, "Maximize preview", "最大化預覽")} onClick={() => notify(localized(language, "Preview size", "預覽大小"), voice("Preview is already shown at its supported size.", "預覽已經係支援嘅大小。", "info"), "info")}>□</button><button type="button" aria-label={localized(language, "Close preview", "關閉預覽")} onClick={() => setPreviewWindow("closed")}>×</button></span></div>
+                  <div className="window-menu"><span>File</span><span>Edit</span><span>View</span><span>Insert</span><span>Format</span><span>Tools</span></div>
+                  <div className="window-tools"><button type="button" aria-label="Bold preview" onClick={() => notify("Preview toolbar", "Bold preview control", "info")}><b>B</b></button><button type="button" aria-label="Italic preview" onClick={() => notify("Preview toolbar", "Italic preview control", "info")}><i>I</i></button><button type="button" aria-label="Underline preview" onClick={() => notify("Preview toolbar", "Underline preview control", "info")}><u>U</u></button><span>≡</span><span>☷</span><span className="tool-fill" /></div>
+                  <div className="window-body"><aside><span className="active-line" /><span /><span /><span /></aside><article><small>CONFIDENTIAL · Q3</small><h2>Board report</h2><p /><p /><h3>Executive summary</h3><p /><p /></article><div className="properties"><strong>Properties</strong><span /><span /><span /></div></div>
+                </div>
+              )}
             </div>
             <section aria-labelledby="capability-boundary-title">
               <div className="section-heading"><div><p className="eyebrow">{localized(language, "Capability boundary", "能力界線")}</p><h2 id="capability-boundary-title">{localized(language, "Implemented, delegated, and planned are different things", "已實作、交畀 LibreOffice、同計劃中係三回事")}</h2></div></div>

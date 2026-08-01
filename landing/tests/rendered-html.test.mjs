@@ -86,6 +86,10 @@ test("removes starter state and retains accessibility and local-preference contr
   assert.match(page, /<RegexBuilder/);
   assert.match(page, /role="tablist"/);
   assert.match(page, /aria-live="polite"/);
+  assert.match(page, /Minimize preview/);
+  assert.match(page, /Restore preview/);
+  assert.match(page, /Close preview/);
+  assert.match(page, /Bold preview/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.match(css, /forced-colors:\s*active/);
   assert.match(css, /@media \(max-width:\s*560px\)/);
