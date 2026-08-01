@@ -1,0 +1,127 @@
+{
+  "name": "material-office",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A lively Material Design office workspace for Windows, integrated with LibreOffice.",
+  "license": "MIT",
+  "author": "Ding-Ding Projects",
+  "homepage": "https://github.com/Ding-Ding-Projects/material-office#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ding-Ding-Projects/material-office.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ding-Ding-Projects/material-office/issues"
+  },
+  "keywords": [
+    "electron",
+    "material-design",
+    "office",
+    "windows"
+  ],
+  "type": "module",
+  "main": "src/main/index.js",
+  "os": [
+    "win32"
+  ],
+  "scripts": {
+    "sync:legal": "node scripts/sync-legal-assets.mjs",
+    "prestart": "npm run sync:legal",
+    "start": "electron .",
+    "pretest": "npm run sync:legal",
+    "test": "npm run test:unit && npm run test:renderer && npm run test:smoke && npm run test:electron",
+    "test:unit": "node --test test/unit/*.test.js",
+    "test:renderer": "node --test test/renderer-core*.test.mjs",
+    "test:smoke": "node --test test/smoke/*.test.js",
+    "test:electron": "electron . --smoke-test",
+    "prepare:git-runtime": "node scripts/prepare-git-runtime.mjs",
+    "prepare:git-sources": "node scripts/prepare-git-runtime-sources.mjs",
+    "verify:git-runtime": "node scripts/verify-git-runtime.mjs",
+    "verify:libreoffice": "node scripts/verify-libreoffice-integration.mjs",
+    "predist:win": "npm run sync:legal",
+    "dist:win": "npm run prepare:git-runtime && electron-builder --win nsis",
+    "verify:fuses": "node scripts/verify-electron-fuses.mjs",
+    "verify:package": "node scripts/verify-package-contents.mjs"
+  },
+  "devDependencies": {
+    "@electron/asar": "3.4.1",
+    "@electron/fuses": "2.1.3",
+    "electron": "43.2.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.dingdingprojects.materialoffice",
+    "productName": "Material Office",
+    "asar": true,
+    "asarUnpack": [
+      "src/main/uno-command.py"
+    ],
+    "files": [
+      "src/**/*",
+      "!src/**/__pycache__/**",
+      "!src/**/*.pyc",
+      "!src/**/*.pyo",
+      "package.json"
+    ],
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "loadBrowserProcessSpecificV8Snapshot": false,
+      "grantFileProtocolExtraPrivileges": false
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "extraResources": [
+      {
+        "from": "build-tools/git-runtime",
+        "to": "tools/git",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "LICENSE",
+        "to": "legal/LICENSE.txt"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "legal/THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "from": "docs/legal/classic-har-gow-provenance.json",
+        "to": "legal/classic-har-gow-provenance.json"
+      },
+      {
+        "from": "node_modules/electron/LICENSE",
+        "to": "legal/ELECTRON_LICENSE.txt"
+      }
+    ],
+    "win": {
+      "icon": "src/renderer/assets/dim-sum/hk-dish-0001-classic-har-gow.png",
+      "requestedExecutionLevel": "asInvoker",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Material-Office-${version}-${arch}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

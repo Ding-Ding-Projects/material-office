@@ -1,0 +1,3 @@
+export const MAX_WORKSPACE_BYTES = 4 * 1024 * 1024;
+export const MAX_STATE_FILE_BYTES = 10 * 1024 * 1024;
+export const MAX_GIT_OUTPUT_BYTES = MAX_STATE_FILE_BYTES + (64 * 1024);

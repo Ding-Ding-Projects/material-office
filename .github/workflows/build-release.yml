@@ -1,0 +1,634 @@
+name: Build, test, release, and publish
+
+on:
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+
+concurrency:
+  group: material-office-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_BUNDLE_NAME: material-office-release-${{ github.run_id }}-${{ github.run_attempt }}
+  LIBREOFFICE_VERSION: "26.2.5"
+  LIBREOFFICE_MSI_NAME: LibreOffice_26.2.5_Win_x86-64.msi
+  LIBREOFFICE_MSI_URL: https://download.documentfoundation.org/libreoffice/stable/26.2.5/win/x86_64/LibreOffice_26.2.5_Win_x86-64.msi
+  LIBREOFFICE_MSI_SHA256: f15ba07bfcb0186986cf3171063506f5d207c11f8cc051ba0d135209e9e915f9
+
+jobs:
+  workflow-lint:
+    name: Workflow schema and policy lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: false
+
+      - name: Run pinned official actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/actionlint.tar.gz"
+          curl --fail --location --silent --show-error \
+            --output "$archive" \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $archive" | sha256sum --check --strict
+          tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color
+
+  windows-build:
+    name: Windows build and installer verification
+    needs: workflow-lint
+    if: needs.workflow-lint.result == 'success'
+    runs-on: windows-latest
+    timeout-minutes: 75
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+    outputs:
+      version: ${{ steps.bundle.outputs.version }}
+      installer_name: ${{ steps.bundle.outputs.installer_name }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: false
+
+      - name: Measure hosted runner
+        shell: pwsh
+        run: |
+          Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors
+          Get-CimInstance Win32_ComputerSystem | Select-Object TotalPhysicalMemory
+          Get-PSDrive C | Select-Object Used, Free
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "26.4.0"
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Audit application dependencies
+        run: npm audit --audit-level=high
+
+      - name: Test application
+        run: npm test
+
+      - name: Download and install pinned official LibreOffice
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+          $msi = Join-Path $env:RUNNER_TEMP $env:LIBREOFFICE_MSI_NAME
+          Invoke-WebRequest -Uri $env:LIBREOFFICE_MSI_URL -OutFile $msi -MaximumRedirection 10
+          $actual = (Get-FileHash -LiteralPath $msi -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $env:LIBREOFFICE_MSI_SHA256) {
+            throw "LibreOffice MSI hash mismatch: expected $env:LIBREOFFICE_MSI_SHA256, received $actual."
+          }
+          $signature = Get-AuthenticodeSignature -LiteralPath $msi
+          if ($signature.Status -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch 'The Document Foundation') {
+            throw "LibreOffice MSI Authenticode verification failed: $($signature.Status), $($signature.SignerCertificate.Subject)."
+          }
+          $install = Start-Process -FilePath "$env:SystemRoot\System32\msiexec.exe" -ArgumentList @('/i', $msi, '/qn', '/norestart', 'ALLUSERS=1') -Wait -PassThru -WindowStyle Hidden
+          if ($install.ExitCode -notin @(0, 3010)) {
+            throw "LibreOffice MSI exited with $($install.ExitCode)."
+          }
+          $soffice = Join-Path $env:ProgramFiles 'LibreOffice\program\soffice.com'
+          if (-not (Test-Path -LiteralPath $soffice -PathType Leaf)) {
+            throw "LibreOffice did not install its console executable at $soffice."
+          }
+          "MATERIAL_OFFICE_SOFFICE=$soffice" >> $env:GITHUB_ENV
+
+      - name: Verify genuine LibreOffice availability and conversions
+        shell: pwsh
+        run: npm run verify:libreoffice -- "$env:MATERIAL_OFFICE_SOFFICE"
+
+      - name: Prepare pinned corresponding-source assets
+        run: npm run prepare:git-sources
+
+      - name: Build Windows installer
+        run: npm run dist:win
+
+      - name: Verify packaged files, minimal Git history, and Electron fuses
+        run: |
+          npm run verify:package
+          npm run verify:fuses
+
+      - name: Smoke-test packaged and installed applications
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+
+          $packaged = Join-Path $PWD "dist/win-unpacked/Material Office.exe"
+          if (-not (Test-Path -LiteralPath $packaged -PathType Leaf)) {
+            throw "The unpacked application executable is missing."
+          }
+          $packagedOut = Join-Path $env:RUNNER_TEMP "packaged-smoke.stdout.log"
+          $packagedErr = Join-Path $env:RUNNER_TEMP "packaged-smoke.stderr.log"
+          $packagedSmoke = Start-Process -FilePath $packaged -ArgumentList '--smoke-test' -RedirectStandardOutput $packagedOut -RedirectStandardError $packagedErr -Wait -PassThru -WindowStyle Hidden
+          Get-Content -LiteralPath $packagedOut -ErrorAction SilentlyContinue
+          Get-Content -LiteralPath $packagedErr -ErrorAction SilentlyContinue
+          if ($packagedSmoke.ExitCode -ne 0) {
+            throw "The packaged application smoke test exited with $($packagedSmoke.ExitCode)."
+          }
+
+          $installers = @(Get-ChildItem -LiteralPath dist -Filter "*-Setup.exe" -File)
+          if ($installers.Count -ne 1) {
+            throw "Expected exactly one Windows installer before install smoke, found $($installers.Count)."
+          }
+          $installRoot = Join-Path $env:RUNNER_TEMP "material-office-installed-$env:GITHUB_RUN_ATTEMPT"
+          if (Test-Path -LiteralPath $installRoot) {
+            throw "The isolated installer test directory already exists."
+          }
+          $installer = Start-Process -FilePath $installers[0].FullName -ArgumentList @('/S', "/D=$installRoot") -Wait -PassThru -WindowStyle Hidden
+          if ($installer.ExitCode -ne 0) {
+            throw "Silent installer exited with $($installer.ExitCode)."
+          }
+
+          $installed = Join-Path $installRoot "Material Office.exe"
+          if (-not (Test-Path -LiteralPath $installed -PathType Leaf)) {
+            throw "The installed application executable is missing."
+          }
+          $installedOut = Join-Path $env:RUNNER_TEMP "installed-smoke.stdout.log"
+          $installedErr = Join-Path $env:RUNNER_TEMP "installed-smoke.stderr.log"
+          $installedSmoke = Start-Process -FilePath $installed -ArgumentList '--smoke-test' -RedirectStandardOutput $installedOut -RedirectStandardError $installedErr -Wait -PassThru -WindowStyle Hidden
+          Get-Content -LiteralPath $installedOut -ErrorAction SilentlyContinue
+          Get-Content -LiteralPath $installedErr -ErrorAction SilentlyContinue
+          if ($installedSmoke.ExitCode -ne 0) {
+            throw "The installed application smoke test exited with $($installedSmoke.ExitCode)."
+          }
+
+          $shortcutRoot = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+          $shortcuts = @(Get-ChildItem -LiteralPath $shortcutRoot -Filter 'Material Office.lnk' -Recurse -File)
+          if ($shortcuts.Count -ne 1) {
+            throw "Expected exactly one installed Start-menu shortcut, found $($shortcuts.Count)."
+          }
+          & scripts/verify-windows-icon.ps1 `
+            -PackagedExecutable $packaged `
+            -InstalledExecutable $installed `
+            -ShortcutPath $shortcuts[0].FullName `
+            -ElectronExecutable (Join-Path $PWD 'node_modules/electron/dist/electron.exe')
+          if ($LASTEXITCODE -ne 0) {
+            throw "Installed icon verification exited with $LASTEXITCODE."
+          }
+
+          $uninstaller = Join-Path $installRoot "Uninstall Material Office.exe"
+          if (-not (Test-Path -LiteralPath $uninstaller -PathType Leaf)) {
+            throw "The silent installer did not create its uninstaller."
+          }
+          $removed = Start-Process -FilePath $uninstaller -ArgumentList '/S' -Wait -PassThru -WindowStyle Hidden
+          if ($removed.ExitCode -ne 0) {
+            throw "Silent uninstaller exited with $($removed.ExitCode)."
+          }
+          $deadline = [DateTimeOffset]::UtcNow.AddSeconds(20)
+          while ((Test-Path -LiteralPath $installed -PathType Leaf) -and [DateTimeOffset]::UtcNow -lt $deadline) {
+            Start-Sleep -Milliseconds 250
+          }
+          if (Test-Path -LiteralPath $installed -PathType Leaf) {
+            throw "The silent uninstaller left the installed executable behind."
+          }
+
+      - name: Assemble verified release bundle
+        id: bundle
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+
+          $manifest = Get-Content -LiteralPath package.json -Raw | ConvertFrom-Json
+          $version = [string]$manifest.version
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$') {
+            throw "package.json contains an invalid release version."
+          }
+          $installers = @(Get-ChildItem -LiteralPath dist -Filter "*-Setup.exe" -File)
+          if ($installers.Count -ne 1 -or $installers[0].Length -lt 1000000) {
+            throw "Expected exactly one nontrivial Windows installer."
+          }
+
+          $image = (Resolve-Path "src/renderer/assets/dim-sum/hk-dish-0001-classic-har-gow.png").Path
+          $provenancePath = (Resolve-Path "docs/legal/classic-har-gow-provenance.json").Path
+          $provenance = Get-Content -LiteralPath $provenancePath -Raw | ConvertFrom-Json
+          if ($provenance.provenanceStatus -ne 'catalog-record-and-byte-identity-verified' -or -not $provenance.verification.catalogRecordAvailable -or -not $provenance.verification.catalogImageAvailable -or -not $provenance.verification.copiesMatchCatalogBytes) {
+            throw "The dim-sum provenance record does not verify source record and byte identity."
+          }
+          $imageSha256 = (Get-FileHash -LiteralPath $image -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($imageSha256 -ne [string]$provenance.asset.sha256 -or (Get-Item -LiteralPath $image).Length -ne [long]$provenance.asset.bytes) {
+            throw "The bundled dim-sum image does not match its verified provenance."
+          }
+          Add-Type -AssemblyName PresentationCore
+          $imageStream = [IO.File]::OpenRead($image)
+          try {
+            $decoder = [System.Windows.Media.Imaging.PngBitmapDecoder]::new($imageStream, [System.Windows.Media.Imaging.BitmapCreateOptions]::PreservePixelFormat, [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad)
+            if ($decoder.Frames.Count -ne 1 -or $decoder.Frames[0].PixelWidth -ne [int]$provenance.asset.width -or $decoder.Frames[0].PixelHeight -ne [int]$provenance.asset.height) {
+              throw "The release PNG did not decode to its recorded single-frame dimensions."
+            }
+            $stride = [int][Math]::Ceiling($decoder.Frames[0].PixelWidth * $decoder.Frames[0].Format.BitsPerPixel / 8.0)
+            $decodedPixels = [byte[]]::new($stride * $decoder.Frames[0].PixelHeight)
+            $decoder.Frames[0].CopyPixels($decodedPixels, $stride, 0)
+            if ($decodedPixels.Length -le 0) { throw "The release PNG decoded no pixels." }
+          } finally {
+            $imageStream.Dispose()
+          }
+
+          $signatureStatus = (Get-AuthenticodeSignature -LiteralPath $installers[0].FullName).Status.ToString()
+          if ($signatureStatus -notin @('Valid', 'NotSigned')) {
+            throw "The installer has an invalid Authenticode state: $signatureStatus."
+          }
+          if ($signatureStatus -eq 'NotSigned' -and ($manifest.build.nsis.allowElevation -ne $false -or $manifest.build.nsis.perMachine -ne $false -or $manifest.build.win.requestedExecutionLevel -ne 'asInvoker')) {
+            throw "An Authenticode-unsigned build must be per-user, non-elevating, and run as the invoking user."
+          }
+          $bundleDirectory = Join-Path $env:RUNNER_TEMP "release-bundle"
+          New-Item -ItemType Directory -Path $bundleDirectory | Out-Null
+
+          $checksumName = "$($installers[0].Name).sha256"
+          $installerSha256 = (Get-FileHash -LiteralPath $installers[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          $checksumSource = Join-Path $env:RUNNER_TEMP $checksumName
+          "$installerSha256  $($installers[0].Name)" | Set-Content -LiteralPath $checksumSource -Encoding utf8NoBOM
+
+          $assetInputs = @(
+            [pscustomobject]@{ Source = $installers[0].FullName; Name = $installers[0].Name; Role = 'windows-installer' },
+            [pscustomobject]@{ Source = $checksumSource; Name = $checksumName; Role = 'installer-checksum' },
+            [pscustomobject]@{ Source = $image; Name = (Split-Path -Leaf $image); Role = 'dim-sum-image' },
+            [pscustomobject]@{ Source = $provenancePath; Name = 'classic-har-gow-provenance.json'; Role = 'image-provenance' },
+            [pscustomobject]@{ Source = (Resolve-Path 'LICENSE').Path; Name = 'LICENSE.txt'; Role = 'project-license' },
+            [pscustomobject]@{ Source = (Resolve-Path 'THIRD_PARTY_NOTICES.md').Path; Name = 'THIRD_PARTY_NOTICES.md'; Role = 'third-party-notices' },
+            [pscustomobject]@{ Source = (Resolve-Path 'build-tools/git-runtime/legal/git-runtime-component-manifest.json').Path; Name = 'git-runtime-component-manifest.json'; Role = 'git-runtime-component-manifest' }
+          )
+          $sourceRoles = @{
+            'git-runtime-source-manifest.json' = 'git-runtime-source-manifest'
+            'mingw-w64-git-2.55.0.3-1.src.tar.gz' = 'git-corresponding-source'
+            'libiconv-1.19.tar.gz' = 'libiconv-corresponding-source'
+            'gettext-1.0.tar.lz' = 'gettext-corresponding-source'
+            'git-for-windows-MINGW-packages-998707b909fd8fc204ba34f1c2dfb2885bc381a7-runtime-recipes.tar' = 'runtime-build-recipes'
+          }
+          $sourceFiles = @(Get-ChildItem -LiteralPath 'build-tools/git-runtime-sources' -File)
+          if ($sourceFiles.Count -ne $sourceRoles.Count) {
+            throw "The corresponding-source directory does not contain exactly the gated assets."
+          }
+          foreach ($sourceFile in $sourceFiles) {
+            if (-not $sourceRoles.ContainsKey($sourceFile.Name)) {
+              throw "Unexpected corresponding-source asset: $($sourceFile.Name)."
+            }
+            $assetInputs += [pscustomobject]@{ Source = $sourceFile.FullName; Name = $sourceFile.Name; Role = $sourceRoles[$sourceFile.Name] }
+          }
+          if (($assetInputs.Name | Sort-Object -Unique).Count -ne $assetInputs.Count) {
+            throw "Release asset names are not unique."
+          }
+
+          $assets = @()
+          foreach ($input in $assetInputs) {
+            $destination = Join-Path $bundleDirectory $input.Name
+            Copy-Item -LiteralPath $input.Source -Destination $destination
+            $item = Get-Item -LiteralPath $destination
+            $assets += [ordered]@{
+              name = $input.Name
+              role = $input.Role
+              bytes = $item.Length
+              sha256 = (Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash.ToLowerInvariant()
+            }
+          }
+          $metadata = [ordered]@{
+            schemaVersion = 2
+            version = $version
+            commit = $env:GITHUB_SHA
+            codeName = 'Classic Har Gow · 蝦餃'
+            signatureStatus = $signatureStatus
+            libreOffice = [ordered]@{
+              version = $env:LIBREOFFICE_VERSION
+              msiName = $env:LIBREOFFICE_MSI_NAME
+              msiSha256 = $env:LIBREOFFICE_MSI_SHA256
+              integrationGate = 'html-fodt-pdf-and-pyuno-import-verified'
+            }
+            correspondingSourceGate = 'complete-corresponding-source'
+            assets = @($assets | Sort-Object name)
+          }
+          $metadata | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $bundleDirectory "release-metadata.json") -Encoding utf8NoBOM
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "installer_name=$($installers[0].Name)" >> $env:GITHUB_OUTPUT
+
+      - name: Attest exact installer build provenance
+        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3.1.0
+        with:
+          subject-path: dist/*-Setup.exe
+
+      - name: Upload verified Windows release bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.RELEASE_BUNDLE_NAME }}
+          path: ${{ runner.temp }}/release-bundle
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0
+          overwrite: false
+          include-hidden-files: false
+
+  landing-test:
+    name: Documentation site audit and test
+    needs: workflow-lint
+    if: needs.workflow-lint.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: false
+
+      - name: Measure hosted runner
+        shell: bash
+        run: |
+          nproc
+          free -h
+          df -h /
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "26.4.0"
+          cache: npm
+          cache-dependency-path: landing/package-lock.json
+
+      - name: Install locked dependencies
+        working-directory: landing
+        run: npm ci --no-audit --no-fund
+
+      - name: Audit documentation dependencies
+        working-directory: landing
+        run: npm audit --audit-level=high
+
+      - name: Test Sites and static Pages builds
+        working-directory: landing
+        run: npm test
+
+  pages:
+    name: Static documentation deployment
+    needs:
+      - windows-build
+      - landing-test
+      - release
+    if: github.ref == 'refs/heads/main' && needs.windows-build.result == 'success' && needs.landing-test.result == 'success' && needs.release.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          submodules: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "26.4.0"
+          cache: npm
+          cache-dependency-path: landing/package-lock.json
+
+      - name: Install locked dependencies
+        working-directory: landing
+        run: npm ci --no-audit --no-fund
+
+      - name: Configure Pages
+        id: pages-config
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Build and verify base-aware static Pages output
+        working-directory: landing
+        env:
+          GITHUB_PAGES_BASE_PATH: ${{ steps.pages-config.outputs.base_path }}
+          MATERIAL_OFFICE_RELEASE_STATE: published
+          MATERIAL_OFFICE_VERSION: ${{ needs.windows-build.outputs.version }}
+          MATERIAL_OFFICE_RELEASE_TAG: v${{ needs.windows-build.outputs.version }}-build.${{ github.run_number }}.attempt.${{ github.run_attempt }}
+          MATERIAL_OFFICE_REPOSITORY: ${{ github.repository }}
+          MATERIAL_OFFICE_INSTALLER_NAME: ${{ needs.windows-build.outputs.installer_name }}
+        run: |
+          npm run build:pages
+          npm run test:pages
+
+      - name: Upload static Pages output
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: landing/dist-pages
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+
+  release:
+    name: Publish and verify release
+    needs:
+      - windows-build
+      - landing-test
+    if: needs.windows-build.result == 'success' && needs.landing-test.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      actions: read
+      attestations: read
+      contents: write
+    steps:
+      - name: Download verified Windows release bundle
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ env.RELEASE_BUNDLE_NAME }}
+          path: ${{ runner.temp }}/release-bundle
+          digest-mismatch: error
+
+      - name: Publish exactly one verified non-draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.windows-build.outputs.version }}
+          PAGES_URL: ${{ github.ref == 'refs/heads/main' && 'https://ding-ding-projects.github.io/material-office/' || '' }}
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+
+          $bundleDirectory = Join-Path $env:RUNNER_TEMP "release-bundle"
+          $metadataPath = Join-Path $bundleDirectory "release-metadata.json"
+          $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
+          if ([int]$metadata.schemaVersion -ne 2 -or $metadata.version -ne $env:VERSION -or $metadata.commit -ne $env:GITHUB_SHA) {
+            throw "Release metadata does not identify this schema, version, and commit."
+          }
+          if ($metadata.correspondingSourceGate -ne 'complete-corresponding-source' -or $metadata.libreOffice.integrationGate -ne 'html-fodt-pdf-and-pyuno-import-verified') {
+            throw "A legal-source or genuine LibreOffice gate is missing."
+          }
+          $expectedFiles = @($metadata.assets | ForEach-Object name) + 'release-metadata.json' | Sort-Object
+          $actualFiles = @(Get-ChildItem -LiteralPath $bundleDirectory -File | ForEach-Object Name | Sort-Object)
+          if (Compare-Object -ReferenceObject $expectedFiles -DifferenceObject $actualFiles) {
+            throw "The downloaded release bundle does not contain exactly the metadata-declared files."
+          }
+          $requiredRoles = @(
+            'windows-installer', 'installer-checksum', 'dim-sum-image', 'image-provenance',
+            'project-license', 'third-party-notices', 'git-runtime-component-manifest',
+            'git-runtime-source-manifest', 'git-corresponding-source',
+            'libiconv-corresponding-source', 'gettext-corresponding-source', 'runtime-build-recipes'
+          ) | Sort-Object
+          $actualRoles = @($metadata.assets | ForEach-Object role | Sort-Object)
+          if (Compare-Object -ReferenceObject $requiredRoles -DifferenceObject $actualRoles) {
+            throw "The release bundle is missing a required installer, provenance, legal, or source role."
+          }
+          foreach ($asset in $metadata.assets) {
+            $assetPath = Join-Path $bundleDirectory $asset.name
+            $item = Get-Item -LiteralPath $assetPath
+            $hash = (Get-FileHash -LiteralPath $assetPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($item.Length -ne [long]$asset.bytes -or $hash -ne $asset.sha256) {
+              throw "Release asset $($asset.name) does not match its gated metadata."
+            }
+          }
+          $installerAsset = @($metadata.assets | Where-Object role -eq 'windows-installer')
+          $checksumAsset = @($metadata.assets | Where-Object role -eq 'installer-checksum')
+          if ($installerAsset.Count -ne 1 -or $checksumAsset.Count -ne 1) {
+            throw "Installer and checksum roles must each be unique."
+          }
+          $installerPath = Join-Path $bundleDirectory $installerAsset[0].name
+          $checksumPath = Join-Path $bundleDirectory $checksumAsset[0].name
+          $checksumLine = (Get-Content -LiteralPath $checksumPath -Raw).Trim()
+          if ($checksumLine -ne "$($installerAsset[0].sha256)  $($installerAsset[0].name)") {
+            throw "The installer checksum text does not match the gated installer."
+          }
+          gh attestation verify $installerPath --repo $env:GITHUB_REPOSITORY
+          if ($LASTEXITCODE -ne 0) {
+            throw "The downloaded installer failed repository/workflow build-provenance verification."
+          }
+
+          $tag = "v$($env:VERSION)-build.$env:GITHUB_RUN_NUMBER.attempt.$env:GITHUB_RUN_ATTEMPT"
+          gh release view $tag --repo $env:GITHUB_REPOSITORY --json tagName 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            throw "A release already exists for $tag; refusing to publish a duplicate."
+          }
+          $codeName = [string]$metadata.codeName
+          $releaseRowsJson = gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/releases?per_page=100"
+          if ($LASTEXITCODE -ne 0) { throw "Could not inspect existing release code-name use." }
+          $releaseRows = @(
+            foreach ($page in @($releaseRowsJson | ConvertFrom-Json)) {
+              foreach ($row in @($page)) { $row }
+            }
+          )
+          if (@($releaseRows | Where-Object { $_.name -like "*$codeName*" -or $_.body -like "*$codeName*" }).Count -gt 0) {
+            $title = "Material Office $($env:VERSION) build $env:GITHUB_RUN_NUMBER attempt $env:GITHUB_RUN_ATTEMPT"
+            $codeNameLine = "**Code name:** none — the only verified bundled code name has already been used, so this build ships by version and tag."
+          } else {
+            $title = "Material Office $($env:VERSION) build $env:GITHUB_RUN_NUMBER attempt $env:GITHUB_RUN_ATTEMPT · $codeName"
+            $codeNameLine = "**Code name:** $codeName"
+          }
+          $imageAsset = @($metadata.assets | Where-Object role -eq 'dim-sum-image')
+          if ($imageAsset.Count -ne 1) {
+            throw "The release must contain exactly one verified dim-sum image."
+          }
+          $imageAssetUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$tag/$([Uri]::EscapeDataString([string]$imageAsset[0].name))"
+          $imageLine = "![Classic Har Gow · 蝦餃]($imageAssetUrl)"
+          $assetLines = @($metadata.assets | Sort-Object role | ForEach-Object { "- ``$($_.name)`` — $($_.role), $($_.bytes) bytes, SHA-256 ``$($_.sha256)``" })
+          $documentationLine = if ($env:PAGES_URL) {
+            "Documentation: $env:PAGES_URL"
+          } else {
+            "GitHub Pages deployment is default-branch-only; this branch build did not deploy the site."
+          }
+          $notesPath = Join-Path $env:RUNNER_TEMP "release-notes.md"
+          @"
+          # Material Office $($env:VERSION)
+
+          $codeNameLine
+
+          $imageLine
+
+          This Windows x64 build was produced from commit ``$env:GITHUB_SHA`` by run ``$env:GITHUB_RUN_ID`` attempt ``$env:GITHUB_RUN_ATTEMPT``. Tests include an installed-app smoke, the isolated five-file Git history runtime, and genuine LibreOffice $($metadata.libreOffice.version) HTML/FODT-to-PDF conversions plus a bundled-Python PyUNO import. $documentationLine
+
+          ## Verified assets
+
+          $($assetLines -join "`n")
+
+          Authenticode status: **$($metadata.installer.signatureStatus)**. When it is ``NotSigned``, the per-user installer cannot request elevation and Windows may show its normal reputation warning until a code-signing identity is configured. Verify the exact installer against this repository's workflow identity with ``gh attestation verify $($metadata.installer.name) --repo $env:GITHUB_REPOSITORY`` and compare the attached SHA-256 file. The attached source archives, exact Git-for-Windows recipes/patches, component manifest, notices, and provenance record accompany the binaries; the dim-sum image retains the rights boundary stated in its provenance record.
+          "@ | Set-Content -LiteralPath $notesPath -Encoding utf8NoBOM
+
+          $assetPaths = @($metadata.assets | ForEach-Object { Join-Path $bundleDirectory $_.name })
+          $ownedDraft = $false
+          try {
+            gh release create $tag @assetPaths --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --title $title --notes-file $notesPath --draft
+            if ($LASTEXITCODE -ne 0) { throw "Draft release creation or asset upload failed with exit code $LASTEXITCODE." }
+            $ownedDraft = $true
+
+            $draft = gh release view $tag --repo $env:GITHUB_REPOSITORY --json 'tagName,isDraft,isPrerelease,targetCommitish,url,assets' | ConvertFrom-Json
+            if (-not $draft.isDraft -or $draft.isPrerelease -or $draft.targetCommitish -ne $env:GITHUB_SHA) {
+              throw "The uploaded draft metadata does not match this gated run."
+            }
+            $expectedAssetNames = @($metadata.assets | ForEach-Object name | Sort-Object)
+            $draftAssetNames = @($draft.assets | ForEach-Object name | Sort-Object)
+            if (Compare-Object -ReferenceObject $expectedAssetNames -DifferenceObject $draftAssetNames) {
+              throw "The uploaded draft does not contain exactly the gated assets."
+            }
+            foreach ($asset in $metadata.assets) {
+              $record = @($draft.assets | Where-Object name -eq $asset.name)
+              if ($record.Count -ne 1 -or $record[0].state -ne 'uploaded' -or [long]$record[0].size -ne [long]$asset.bytes -or $record[0].digest -ne "sha256:$($asset.sha256)") {
+                throw "Uploaded asset metadata failed for $($asset.name)."
+              }
+            }
+
+            $readbackDirectory = Join-Path $env:RUNNER_TEMP 'release-readback'
+            New-Item -ItemType Directory -Path $readbackDirectory | Out-Null
+            gh release download $tag --repo $env:GITHUB_REPOSITORY --dir $readbackDirectory
+            if ($LASTEXITCODE -ne 0) { throw "Could not download the uploaded draft assets for byte readback." }
+            $readbackNames = @(Get-ChildItem -LiteralPath $readbackDirectory -File | ForEach-Object Name | Sort-Object)
+            if (Compare-Object -ReferenceObject $expectedAssetNames -DifferenceObject $readbackNames) {
+              throw "Downloaded release readback does not contain exactly the gated assets."
+            }
+            foreach ($asset in $metadata.assets) {
+              $readbackPath = Join-Path $readbackDirectory $asset.name
+              if ((Get-Item -LiteralPath $readbackPath).Length -ne [long]$asset.bytes -or (Get-FileHash -LiteralPath $readbackPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asset.sha256) {
+                throw "Downloaded release readback failed for $($asset.name)."
+              }
+            }
+            $readbackInstaller = Join-Path $readbackDirectory $installerAsset[0].name
+            gh attestation verify $readbackInstaller --repo $env:GITHUB_REPOSITORY
+            if ($LASTEXITCODE -ne 0) {
+              throw "The release readback installer failed repository/workflow build-provenance verification."
+            }
+
+            gh release edit $tag --repo $env:GITHUB_REPOSITORY --draft=false --latest
+            if ($LASTEXITCODE -ne 0) { throw "Release publication failed with exit code $LASTEXITCODE." }
+            $ownedDraft = $false
+          } catch {
+            if ($ownedDraft) {
+              $owned = gh release view $tag --repo $env:GITHUB_REPOSITORY --json isDraft 2>$null | ConvertFrom-Json
+              if ($LASTEXITCODE -eq 0 -and $owned.isDraft) {
+                gh release delete $tag --repo $env:GITHUB_REPOSITORY --cleanup-tag --yes 2>$null | Out-Null
+              }
+            }
+            throw
+          }
+
+          $published = gh release view $tag --repo $env:GITHUB_REPOSITORY --json 'tagName,name,isDraft,isPrerelease,targetCommitish,url,assets' | ConvertFrom-Json
+          if ($published.tagName -ne $tag -or $published.isDraft -or $published.isPrerelease -or $published.targetCommitish -ne $env:GITHUB_SHA) {
+            throw "The final published release is not the unique non-draft release for this run."
+          }
+          $publishedAssetNames = @($published.assets | ForEach-Object name | Sort-Object)
+          if (Compare-Object -ReferenceObject $expectedAssetNames -DifferenceObject $publishedAssetNames) {
+            throw "The final release asset list changed after publication."
+          }
+          Write-Output "Verified non-draft release: $($published.url)"

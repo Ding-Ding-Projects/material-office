@@ -1,0 +1,3 @@
+[submodule "original-code-reference/libreoffice-core"]
+	path = original-code-reference/libreoffice-core
+	url = https://github.com/LibreOffice/core

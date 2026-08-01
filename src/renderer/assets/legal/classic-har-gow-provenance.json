@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "recordedOn": "2026-07-31",
+  "provenanceStatus": "catalog-record-and-byte-identity-verified",
+  "rightsStatus": "project-distribution-authorized-no-downstream-reuse-license",
+  "asset": {
+    "id": "hk-dish-0001",
+    "slug": "classic-har-gow",
+    "name": {
+      "en": "Classic Har Gow",
+      "zhHant": "蝦餃"
+    },
+    "jyutping": "haa1 gaau2",
+    "category": "steamed-dim-sum",
+    "mediaType": "image/png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2406444,
+    "sha256": "c6ff2d32938f1e4c4ea685442f69227b8cd387f302ab8f8a62e8dd96c62b5ac0",
+    "alt": {
+      "en": "Warm tea-house photograph of Classic Har Gow",
+      "yue": "港式茶樓木枱上嘅蝦餃"
+    }
+  },
+  "sourceCatalog": {
+    "repository": "canonical private dim-sum catalog (identifier intentionally withheld)",
+    "repositoryVisibilityAtInspection": "private",
+    "revision": "dfb95a20e647d921242358988ada9c5436c78b3d",
+    "catalogStatusAtInspection": "in-progress",
+    "indexPath": "dim-sum/index.json",
+    "manifestPath": "dim-sum/image-manifest.json",
+    "imagePath": "dim-sum/images/hk-dish-0001-classic-har-gow.png",
+    "generationMode": "one-distinct-built-in-imagegen-call-per-dish",
+    "quality": "native-lossless-imagegen-output",
+    "promptSha256": "e2b5b8aa7f4bd605919008cca271710eaaf4455e9661d23731fb5acf7cd669b3"
+  },
+  "bundledCopies": [
+    "src/renderer/assets/dim-sum/hk-dish-0001-classic-har-gow.png",
+    "landing/public/media/classic-har-gow.png"
+  ],
+  "verification": {
+    "method": "Exact SHA-256, byte length, media type, native dimensions, and full PNG decode are required.",
+    "catalogRecordAvailable": true,
+    "catalogImageAvailable": true,
+    "copiesMatchCatalogBytes": true
+  },
+  "rightsBoundary": "The project owner's standing release directive authorizes this exact catalog asset to be bundled with Material Office and attached to its releases. The source catalog records generation provenance but grants no downstream reuse license. This record does not extend the Material Office MIT License to the image or grant third-party trademark, publicity, cultural-property, or reuse rights."
+}

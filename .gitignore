@@ -1,0 +1,26 @@
+node_modules/
+dist/
+build-tools/
+*.log
+*.tmp
+__pycache__/
+*.py[cod]
+
+# Electron and test output
+coverage/
+artifacts/tmp/
+
+# Sites build and local development state
+landing/node_modules/
+landing/dist/
+landing/dist-pages/
+landing/.next/
+landing/.wrangler/
+landing/.open-next/
+
+# Editors and operating-system metadata
+.DS_Store
+Thumbs.db
+.~lock.*#
+.idea/
+.vscode/

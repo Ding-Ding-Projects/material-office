@@ -1,0 +1,65 @@
+{
+  "name": "material-office-landing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive prerelease documentation for the Material Office Windows application.",
+  "license": "MIT",
+  "author": "Ding-Ding Projects",
+  "homepage": "https://github.com/Ding-Ding-Projects/material-office#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ding-Ding-Projects/material-office.git",
+    "directory": "landing"
+  },
+  "bugs": {
+    "url": "https://github.com/Ding-Ding-Projects/material-office/issues"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "sync:features": "node scripts/sync-features.mjs",
+    "sync:legal": "node ../scripts/sync-legal-assets.mjs",
+    "prepare:pages-release": "node scripts/prepare-pages-release.mjs",
+    "predev": "npm run sync:features && npm run sync:legal",
+    "dev": "vinext dev",
+    "prebuild": "npm run sync:features && npm run sync:legal",
+    "build": "vinext build",
+    "prebuild:pages": "npm run sync:features && npm run sync:legal && npm run prepare:pages-release",
+    "build:pages": "vite build --config vite.pages.config.ts",
+    "start": "vinext start",
+    "test:sites": "node --test tests/rendered-html.test.mjs",
+    "test:unit": "node --test tests/regex-safety.test.mjs tests/interaction-state.test.mjs",
+    "test:pages": "node --test tests/static-pages.test.mjs tests/release-state.test.mjs",
+    "test": "npm run lint && npm run test:unit && npm run build && npm run test:sites && npm run build:pages && npm run test:pages",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
+  },
+  "dependencies": {
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.50.0",
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.26",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.2.12",
+    "react-server-dom-webpack": "19.2.8",
+    "sharp": "0.35.3",
+    "tailwindcss": "4.2.1",
+    "typescript": "5.9.3",
+    "vinext": "0.0.50",
+    "vite": "8.2.0",
+    "wrangler": "4.118.0"
+  },
+  "overrides": {
+    "postcss": "8.5.25",
+    "sharp": "0.35.3"
+  },
+  "type": "module"
+}

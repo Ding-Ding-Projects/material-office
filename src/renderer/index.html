@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; worker-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Material Office</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Skip to workspace</a>
+    <div id="app" aria-busy="true">
+      <main class="boot-screen" aria-label="Material Office is starting">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <h1>Material Office</h1>
+        <p>Preparing your Windows workspace…</p>
+        <div class="boot-progress" role="progressbar" aria-label="Loading"><span></span></div>
+      </main>
+    </div>
+    <div id="popover-layer"></div>
+    <div id="dialog-layer"></div>
+    <div id="toast-layer" class="toast-stack" aria-live="polite" aria-relevant="additions"></div>
+    <script type="module" src="./app.mjs"></script>
+  </body>
+</html>
