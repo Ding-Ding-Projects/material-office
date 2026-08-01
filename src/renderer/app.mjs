@@ -185,11 +185,8 @@ function legacyCopyPair(value, { cantoneseTechnicalFallback = false } = {}) {
 function initialSearch() { return { mode: 'plain', query: '', pattern: '', flags: 'i', sample: '', open: false }; }
 
 function sampleDocuments(now = new Date().toISOString()) {
-  return [
-    { id: 'demo-writer', type: 'writer', title: 'Q3 Board Report.odt', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { html: DEFAULT_WRITER_HTML }, unsaved: false },
-    { id: 'demo-calc', type: 'calc', title: '2026 Operating Budget.ods', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { sheets: [{ id: 'sheet-1', name: 'Income', cells: { ...DEFAULT_CALC_CELLS } }, { id: 'sheet-2', name: 'Balance', cells: {} }, { id: 'sheet-3', name: 'Cash flow', cells: {} }], activeSheetId: 'sheet-1' }, unsaved: false },
-    { id: 'demo-impress', type: 'impress', title: 'Product Launch.odp', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { slides: structuredClone(DEFAULT_SLIDES), activeSlideId: DEFAULT_SLIDES[0].id }, unsaved: false }
-  ].map((documentRecord) => ({ ...documentRecord, savedContent: structuredClone(documentRecord.content) }));
+  void now;
+  return [];
 }
 
 function createDefaultUiState() {

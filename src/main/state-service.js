@@ -67,17 +67,19 @@ export function deriveWorkspaceHistoryAction(previous, next) {
   const afterDocuments = new Map(workspaceDocuments(next).map((entry) => [entry.id, entry]));
   const created = [...afterDocuments.keys()].filter((id) => !beforeDocuments.has(id)).length;
   const deleted = [...beforeDocuments.keys()].filter((id) => !afterDocuments.has(id)).length;
+  const discarded = [...afterDocuments.entries()].filter(([id, entry]) => beforeDocuments.get(id)?.unsaved === true && entry?.unsaved === false).length;
   const updated = [...afterDocuments.entries()].filter(([id, entry]) => (
     beforeDocuments.has(id) && !jsonEqual(beforeDocuments.get(id), entry)
   )).length;
   const changes = [];
-  if (created > 0 && deleted === 0 && updated === 0) {
+  if (discarded > 0) changes.push(discarded === 1 ? 'document discarded' : 'documents discarded');
+  if (changes.length === 0 && created > 0 && deleted === 0 && updated === 0) {
     changes.push(created === 1 ? 'document created' : 'documents created');
-  } else if (deleted > 0 && created === 0 && updated === 0) {
+  } else if (changes.length === 0 && deleted > 0 && created === 0 && updated === 0) {
     changes.push(deleted === 1 ? 'document deleted' : 'documents deleted');
-  } else if (updated > 0 && created === 0 && deleted === 0) {
+  } else if (changes.length === 0 && updated > 0 && created === 0 && deleted === 0) {
     changes.push(updated === 1 ? 'document updated' : 'documents updated');
-  } else if (created > 0 || deleted > 0 || updated > 0) {
+  } else if (changes.length === 0 && (created > 0 || deleted > 0 || updated > 0)) {
     changes.push('documents changed');
   }
   if (!jsonEqual(previous?.preferences, next?.preferences)) changes.push('settings changed');
