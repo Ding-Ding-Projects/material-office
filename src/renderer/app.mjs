@@ -186,9 +186,9 @@ function initialSearch() { return { mode: 'plain', query: '', pattern: '', flags
 
 function sampleDocuments(now = new Date().toISOString()) {
   return [
-    { id: 'demo-writer', type: 'writer', title: 'Q3 Board Report.odt', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { html: DEFAULT_WRITER_HTML }, unsaved: false },
-    { id: 'demo-calc', type: 'calc', title: '2026 Operating Budget.ods', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { sheets: [{ id: 'sheet-1', name: 'Income', cells: { ...DEFAULT_CALC_CELLS } }, { id: 'sheet-2', name: 'Balance', cells: {} }, { id: 'sheet-3', name: 'Cash flow', cells: {} }], activeSheetId: 'sheet-1' }, unsaved: false },
-    { id: 'demo-impress', type: 'impress', title: 'Product Launch.odp', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { slides: structuredClone(DEFAULT_SLIDES), activeSlideId: DEFAULT_SLIDES[0].id }, unsaved: false }
+    { id: 'document-writer', type: 'writer', title: 'Untitled Writer 1.odt', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { html: DEFAULT_WRITER_HTML }, unsaved: false },
+    { id: 'document-calc', type: 'calc', title: 'Untitled Calc 1.ods', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { sheets: [{ id: 'sheet-1', name: 'Sheet 1', cells: { ...DEFAULT_CALC_CELLS } }], activeSheetId: 'sheet-1' }, unsaved: false },
+    { id: 'document-impress', type: 'impress', title: 'Untitled Impress 1.odp', createdAt: now, updatedAt: now, nativeFileAvailable: false, nativeFileName: null, content: { slides: structuredClone(DEFAULT_SLIDES), activeSlideId: DEFAULT_SLIDES[0].id }, unsaved: false }
   ].map((documentRecord) => ({ ...documentRecord, savedContent: structuredClone(documentRecord.content) }));
 }
 
@@ -303,8 +303,10 @@ function mergeUiState(saved) {
     searches: { ...defaults.searches, ...(saved.searches ?? {}) },
     runtime: { ...defaults.runtime, ...(saved.runtime ?? {}), openMenu: null, menuAnchor: null }
   };
-  if (!merged.tabs.items.length) merged.tabs.items = defaults.tabs.items;
-  if (!merged.tabs.items.some((tab) => tab.id === merged.tabs.activeId)) merged.tabs.activeId = merged.tabs.items[0].id;
+  merged.tabs.items = merged.tabs.items.filter((tab) => tab && typeof tab === 'object' && typeof tab.id === 'string' && typeof tab.surface === 'string');
+  if (!merged.tabs.items.length) merged.tabs.items = defaults.tabs.items.map((tab) => ({ ...tab }));
+  const firstTab = merged.tabs.items[0] ?? { id: 'tab-home', surface: 'home', label: 'Home', pinned: true, groupId: null, unsaved: false };
+  if (!merged.tabs.items.some((tab) => tab.id === merged.tabs.activeId)) merged.tabs.activeId = firstTab.id;
   return merged;
 }
 
@@ -2554,6 +2556,9 @@ appRoot.addEventListener('click', async (event) => {
     case 'refresh-libreoffice': await refreshLibreOffice(); break;
     case 'choose-libreoffice': await chooseLibreOfficeInstallation(); break;
     case 'open-external-editor': await openActiveInExternalEditor(); break;
+    case 'window-minimize': if (desktop?.appWindow?.minimize) await desktop.appWindow.minimize(); break;
+    case 'window-maximize': if (desktop?.appWindow?.toggleMaximize) await desktop.appWindow.toggleMaximize(); break;
+    case 'close-window': closeCurrentAppWindow(); break;
     case 'save-custom-document': await saveActiveCustomWordDocument(); break;
     case 'open-windows-contrast': await openWindowsContrastSettings(); break;
     case 'copy-changelog': try { await navigator.clipboard.writeText(await changelogMarkdown()); notify({ type: 'success', title: 'Changelog copied · 更新紀錄已複製', message: 'The filtered release view is on the clipboard.', persistent: false }); } catch {} break;
@@ -2570,6 +2575,15 @@ toastLayer.addEventListener('click', (event) => {
 
 appRoot.addEventListener('input', (event) => {
   const target = event.target;
+  if (target.matches('[data-context-menu-search]')) {
+    const query = target.value.trim().toLocaleLowerCase();
+    const menu = target.closest('.context-menu');
+    menu?.querySelectorAll('[data-context-menu-label],[data-menu-label]').forEach((item) => {
+      item.hidden = Boolean(query) && !String(item.dataset.contextMenuLabel ?? item.dataset.menuLabel ?? '').toLocaleLowerCase().includes(query);
+    });
+    menu?.querySelectorAll('.separator').forEach((separator) => { separator.hidden = Boolean(query); });
+    return;
+  }
   if (target.matches('[data-search-id]')) {
     const id = target.dataset.searchId; const search = state.searches[id] ??= initialSearch(); search.query = target.value; if (search.mode === 'regex') search.pattern = target.value;
     if (id === 'global') showGlobalSearch(); else render(); queuePersist('search changed'); return;

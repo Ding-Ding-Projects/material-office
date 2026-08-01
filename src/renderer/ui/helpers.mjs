@@ -101,6 +101,11 @@ export function renderTopBar(ctx) {
         <button class="icon-button" type="button" data-action="toggle-theme" aria-label="${escapeAttribute(t('action.theme'))}" title="${escapeAttribute(t('action.theme'))}">${state.preferences?.theme === 'dark' ? '☀' : '◐'}</button>
         <button class="icon-button" type="button" data-action="open-notifications" aria-label="${escapeAttribute(t('nav.notifications'))}" title="${escapeAttribute(t('nav.notifications'))}">♢${notifications ? `<span class="sr-only">${escapeHtml(localized(ctx, '{count} unread', '{count} 個未讀', { count: notifications }))}</span>` : ''}</button>
         <button class="icon-button" type="button" data-action="navigate" data-surface="settings" aria-label="${escapeAttribute(t('nav.settings'))}" title="${escapeAttribute(t('nav.settings'))}">⚙</button>
+        <span class="window-controls" role="group" aria-label="Window controls">
+          <button class="window-control" type="button" data-action="window-minimize" aria-label="Minimize window">—</button>
+          <button class="window-control" type="button" data-action="window-maximize" aria-label="Maximize or restore window">□</button>
+          <button class="window-control close" type="button" data-action="close-window" aria-label="Close window">×</button>
+        </span>
       </div>
     </header>`;
 }
@@ -202,12 +207,12 @@ export function renderMenuPopover(menu, anchor = {}, ctx = null) {
   const surface = ctx?.activeTab?.surface ?? null;
   return `
     <div class="context-menu" role="menu" data-menu-popover="${escapeAttribute(menu)}" style="left:${clamp(anchor.x ?? 12, 8, innerWidth - 260)}px;top:${clamp(anchor.y ?? 80, 8, innerHeight - 420)}px">
-      ${items.map((item) => {
+      <label class="context-menu-search"><span aria-hidden="true">⌕</span><input type="search" data-context-menu-search placeholder="Search menu" aria-label="Search menu"></label><div data-context-menu-items>${items.map((item) => {
         if (item === null) return '<div class="separator" role="separator"></div>';
         const command = staticCommandCapability(item[1], surface);
         const reason = command.enabled ? '' : unsupportedCommandReason(item[1], surface, ctx?.l);
-        return `<button type="button" role="menuitem" data-action="${escapeAttribute(item[1])}" ${command.enabled ? '' : `disabled aria-disabled="true" aria-description="${escapeAttribute(reason)}" title="${escapeAttribute(reason)}"`}><span>${escapeHtml(localized(ctx, item[0]))}</span>${reason ? `<small class="command-reason">${escapeHtml(reason)}</small>` : item[2] ? `<span style="margin-left:auto;color:var(--on-surface-variant);font-family:var(--font-mono);font-size:.7rem">${escapeHtml(item[2])}</span>` : ''}</button>`;
-      }).join('')}
+        return `<button type="button" role="menuitem" data-action="${escapeAttribute(item[1])}" data-context-menu-label="${escapeAttribute(localized(ctx, item[0]))}" ${command.enabled ? '' : `disabled aria-disabled="true" aria-description="${escapeAttribute(reason)}" title="${escapeAttribute(reason)}"`}><span>${escapeHtml(localized(ctx, item[0]))}</span>${reason ? `<small class="command-reason">${escapeHtml(reason)}</small>` : item[2] ? `<span style="margin-left:auto;color:var(--on-surface-variant);font-family:var(--font-mono);font-size:.7rem">${escapeHtml(item[2])}</span>` : ''}</button>`;
+      }).join('')}</div>
     </div>`;
 }
 
