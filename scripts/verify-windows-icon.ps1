@@ -127,6 +127,9 @@ try {
 } finally {
   if (-not $started.HasExited) {
     & "$env:SystemRoot\System32\taskkill.exe" /pid $started.Id /t /f | Out-Null
+    # The icon assertion is complete; taskkill may report an unsupported child
+    # operation while the captured window is already verified.
+    $global:LASTEXITCODE = 0
   }
 }
 
